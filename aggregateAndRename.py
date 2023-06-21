@@ -5,6 +5,12 @@ import os
 
 from funcs import browse_for_dir, get_subdirectories, get_images_from_dir, remove_extension
 
+"""
+
+Collects all images in subdirectories of selected directory, collects them in a chosen save directory and renames them.
+
+"""
+
 
 dir = browse_for_dir()
 save_dir = browse_for_dir()
