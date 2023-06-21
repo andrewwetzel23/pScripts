@@ -3,6 +3,13 @@ from tqdm import tqdm
 
 from funcs import browse_for_file
 
+""" 
+Converts large csv file of annotations data from a _____ repository to yolov5/yolov8 copliant annotaitons
+
+Need to find the relevant repository to add to this description.
+
+"""
+
 with open(r"C:\Users\andrew\Desktop\coco_person_dataset\annotations_download_person.csv", 'r') as f:
 	lines = f.readlines()
 

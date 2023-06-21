@@ -3,6 +3,13 @@ import os
 from tqdm import tqdm
 import shutil
 
+"""
+Consolidates all annotation data from a yolov5/yolov8 annotations directory
+excluding those with the name 'dark' or 'lite' in their names
+
+No longer used.
+"""
+
 dir = browse_for_dir()
 sdir = browse_for_dir()
 

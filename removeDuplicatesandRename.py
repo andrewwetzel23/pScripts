@@ -7,6 +7,11 @@ import shutil
 
 from funcs import browse_for_dir, get_subdirectories, get_images_from_dir, get_extension, convert_name_to_text
 
+"""
+Removes all duplicate files from a directory and renames them from 0 to N
+
+"""
+
 
 # Dialog box for selecting a folder.
 file_path = browse_for_dir()

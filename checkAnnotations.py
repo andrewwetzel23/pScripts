@@ -7,6 +7,14 @@ from ultralytics import YOLO
 from tqdm import tqdm
 import numpy as np
 
+"""
+Intended to parse through yolov5/yolov8 annotations and compare used annotations to 
+one created by a given model.
+
+Needs to be cleaned up and tested
+
+"""
+
 color = [[144, 238, 144], [52,71,21], [232,219,164], [126,37,3]]
 
 def consolidate(idir, sdir):

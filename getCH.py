@@ -24,6 +24,11 @@ import cv2
 import shutil
 from tqdm import tqdm
 
+"""
+Get's large persond ata set for object detection models
+
+"""
+
 def make_dir_ignore(path):
     try:
         os.makedirs(path)

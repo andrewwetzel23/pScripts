@@ -2,6 +2,11 @@ from funcs import browse_for_dir
 from glob import iglob
 import os
 
+"""
+Get's all files of a certain extension from a directory recursively
+
+"""
+
 dir = browse_for_dir()
 RUNS = 20
 

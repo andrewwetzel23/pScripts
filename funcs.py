@@ -11,6 +11,11 @@ from tkinter import Tk
 from tkinter.filedialog import askdirectory, askopenfilename
 from pynput import keyboard
 
+"""
+List of useful python functions for helper files.
+
+Needs to be checked and cleaned up
+"""
 
 # Runs a batch file
 def run_batch_file(batch_path):

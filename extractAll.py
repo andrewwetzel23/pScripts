@@ -4,6 +4,11 @@ from tqdm import tqdm
 
 from funcs import browse_for_dir, get_files_of_type, remove_extension
 
+"""
+Extracts all zip files in a chosen directory into a chosen output directory
+
+"""
+
 dir = browse_for_dir()
 save_dir = browse_for_dir()
 files = get_files_of_type(dir, '.zip')
