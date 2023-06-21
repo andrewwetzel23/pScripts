@@ -20,6 +20,7 @@ Needs to be cleaned and checked.
 
 """
 
+# TimeIt: A decorator for timing a single execution of a function.
 def timeit(func):
 	def wrap_func(*args, **kwargs):
 		t1 = time_ns()
@@ -29,79 +30,92 @@ def timeit(func):
 		return result
 	return wrap_func
 
+# TimeItRepeated: A decorator for timing multiple executions of a function and reporting mean and standard deviation.
 def timeitR(count):
 	def decorator(func):
 		def wrapper(*args, **kwargs):
 			deltas = np.empty([0])
-			for i in range(0, count):
+			for _ in range(count):
 				t1 = time_ns()
 				result = func(*args, **kwargs)
 				t2 = time_ns()
 				deltas = np.append(deltas, (t2-t1)/1000000)
-			print(f"Function {func.__name__!r} took {np.mean(deltas, axis=0)} ms with std of {np.std(deltas, axis=0)}")
+			print(f"Function {func.__name__!r} took {np.mean(deltas):.6f} ms with std of {np.std(deltas):.6f}")
 			return result
 		return wrapper
 	return decorator
 
+# CreateFile: Safely create a new file, with optional overwrite.
+def createFile(file, overwrite=True):
+    try:
+        if os.path.exists(file):
+            if overwrite:
+                removeFile(file)
+            else:
+                print("File already exists and overwrite set to False.")
+                return False
+        with open(file, 'w') as f:
+            pass
+        return True
+    except Exception as e:
+        print(f"Unable to create file: {e}")
+        return False
+
+# RemoveFile: Safely remove a file.
+def removeFile(file):
+    try:
+        os.remove(file)
+    except OSError as e:
+        if e.errno != errno.ENOENT:  # Raise the exception if it's not because the file doesn't exist
+            print(f"Error: {e}")
+            return False
+    return True
+
+# CreateDirectory: Safely create a new directory, with optional overwrite.
+def createDirectory(dir, overwrite=True):
+    try:
+        if os.path.exists(dir):
+            if overwrite:
+                removeDirectory(dir)
+            else:
+                print("Directory already exists and overwrite set to False.")
+                return False
+        os.mkdir(dir)
+        return True
+    except Exception as e:
+        print(f"Unable to create directory: {e}")
+        return False
+
+# RemoveDirectory: Safely remove a directory.
+def removeDirectory(dir):
+    try:
+        shutil.rmtree(dir)
+    except OSError as e:
+        if e.errno != errno.ENOENT:  # Raise the exception if it's not because the directory doesn't exist
+            print(f"Error: {e}")
+            return False
+    return True
 
 
-def safeRemove(object):
-	if os.path.isfile(object):
-		try:
-			os.remove(object)
-		except OSError as e:
-			if e.errno != errno.ENOENT:
-				raise
-	elif os.path.isdir(object):
-		try:
-			shutil.rmtree(object)
-		except OSError as e:
-			if e.errno != errno.ENOENT:
-				raise
-
-def createBlankFile(object):
-	with open(object, 'w') as f:
-		pass
-	return True
-
-def safeCreate(object, overwrite=True):
-	if os.path.isfile(object):
-		if not os.path.exists(object):
-			return createBlankFile()
-
-		elif overwrite:
-			safeRemove(object)
-			return createBlankFile(file)
 		
-		else:
-			return False
-	
-	if os.path.isdir(object):
-		if not os.path.exists(object):
-			os.mkdir(object)
-			return True
 
-		elif overwrite:
-			safeRemove(object)
-			os.mkdir(object)
-			return True
-
-		else:
-			return False
-
+# GetFilesFromDir: Get files with specified extensions from a directory, optionally recursive.
 def getFilesFromDir(dir, exts=[""], recursive=False):
 	files = []
 	for ext in exts:
 		files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=recursive))
 	return files
 
+# GetImagesFromDir: Get image files from a directory, optionally recursive.
 def getImagesFromDir(dir, recursive=False):
 	return getFilesFromDir(dir, exts=[".jpeg", ".jpg", ".png"], recursive=recursive)
 
+# BrowseForDir: Open a dialog to browse for a directory.
 def browseForDir():
 	tkinter.Tk().withdraw()
 	return askdirectory()
 
+# BrowseForFile: Open a dialog to browse for a file.
 def browseForFile():
 	tkinter.Tk().withdraw()
 	return askopenfilename()
@@ -112,50 +126,60 @@ def resizeImages(dir, size, recursiveSearch=False, keepAspectRatio=True):
 		resizeImage(image, size, keepAspectRatio)
 
 
-def resizeImage(image, size, keepAspectRatio=True):
-	img = cv2.imread(image)
+# ResizeImage: Resize an image, optionally keeping its aspect ratio.
+def resizeImage(imagePath: str, targetSize: tuple, keepAspectRatio=True):
+    # Read the image using OpenCV
+    image = cv2.imread(imagePath)
 
-	if keepAspectRatio:
-		max_width, max_height = size
-		AR = max_width/max_height                
-		image_height, image_width, image_channels = img.shape
-		if image_width/image_height > AR:
-			scale = image_width/max_width
-		else:
-			scale = image_height/max_height
-		width = image_width/scale
-		height = image_height/scale
-		new_size = [int(width), int(height)]
-		img_resized = cv2.resize(img, new_size)        
-	else:
-		img_resized = cv2.resize(img, size)
+    if keepAspectRatio:
+        # If we want to keep the aspect ratio, we calculate the scale factor
+        # and resize the image to that scale.
+        maxWidth, maxHeight = targetSize
+        targetAspectRatio = maxWidth / maxHeight
 
-	cv2.imwrite(image, img_resized)
+        # Get the current image dimensions
+        imageHeight, imageWidth, _ = image.shape
+        imageAspectRatio = imageWidth / imageHeight
 
-def removeDuplicates(dir):
-    file_path = dir
-    list_of_files = os.walk(dir)
+        # Determine the scale based on width or height
+        if imageAspectRatio > targetAspectRatio:
+            scale = imageWidth / maxWidth
+        else:
+            scale = imageHeight / maxHeight
 
-    unique_files = dict()
+        # Calculate new dimensions and resize
+        newImageWidth = int(imageWidth / scale)
+        newImageHeight = int(imageHeight / scale)
+        newImageSize = (newImageWidth, newImageHeight)
+        imageResized = cv2.resize(image, newImageSize)
+    else:
+        # If we do not want to keep the aspect ratio, we resize to the target size directly.
+        imageResized = cv2.resize(image, targetSize)
+
+    # Write the resized image back to the file
+    cv2.imwrite(imagePath, imageResized)
+
+
+def removeDuplicates(directory):
+    filePath = directory
+    listOfFiles = os.walk(directory)
+
+    uniqueFiles = dict()
     count = 0
-    for root, folders, files in list_of_files:
-        # Running a for loop on all the files
+
+    for root, folders, files in listOfFiles:
+        # Iterate over all the files
         for file in tqdm(files, 'Removing duplicates...'):
-            file_path = Path(os.path.join(root, file))
+            filePath = Path(os.path.join(root, file))
 
-            # Converting all the content of
-            # our file into md5 hash.
-            Hash_file = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
+            # Convert all the content of our file into an md5 hash.
+            hashFile = hashlib.md5(open(filePath, 'rb').read()).hexdigest()
 
-            # If file hash has already #
-            # been added we'll simply delete that file
-            if Hash_file not in unique_files:
-                unique_files[Hash_file] = file_path
+            # If file hash has already been added, we'll simply delete that file
+            if hashFile not in uniqueFiles:
+                uniqueFiles[hashFile] = filePath
             else:
-                os.remove(file_path)
-                try:
-                    os.remove(os.path.join(dir, convert_name_to_text(file)))
-                except:
-                    pass
+                os.remove(filePath)
                 count += 1
+                
     print(f"Removed {count} duplicates.")
