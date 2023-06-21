@@ -5,6 +5,13 @@ import shutil
 import cv2
 from math import ceil, floor
 
+"""
+Converts all images to a smaller size and grayscale while keeping aspect ratio.
+
+Needs checking and cleaning up.
+Probably can delete and move to a function in funcs since it is pretty generic
+"""
+
 SIZE = [576,352]
 AR = SIZE[0]/SIZE[1]
 

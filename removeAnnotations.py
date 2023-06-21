@@ -3,6 +3,12 @@ from os import listdir
 from tqdm import tqdm
 from funcs import browse_for_dir
 
+""" 
+Removes all annotations who don't have a matching test at the beginning of each line
+
+Needs to be cleaned up
+
+"""
 
 def get_texts_from_dir(path):
     list_of_files = listdir(path)

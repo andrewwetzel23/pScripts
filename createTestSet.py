@@ -3,6 +3,14 @@ from tqdm import tqdm
 import numpy as np
 from  funcs import browse_for_dir, get_images_from_dir
 
+
+"""
+Sort's through images and finds ones that are appropraite for a test set for a yolov8 model
+
+Needs to be checked and cleaned up
+
+"""
+
 def create_window():
 	test_img = np.zeros(shape=(352,576,3)).astype('uint8')
 	cv2.imshow('testImage',test_img)

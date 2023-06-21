@@ -2,6 +2,12 @@ from funcs import get_texts_from_dir, browse_for_dir, remove_extension
 import os
 from tqdm import tqdm
 
+
+"""
+Removes annotations who have a large number of objects
+
+"""
+
 dir = browse_for_dir()
 
 txts = get_texts_from_dir(dir)

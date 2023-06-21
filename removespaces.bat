@@ -1,3 +1,6 @@
+:: Removes spaces from file names in a diretory
+:: Place this file in a directory and run it to remove spaces from all files in that directory
+
 :renameNoSpace  [/R]  [FolderPath]
 @echo off
 setlocal disableDelayedExpansion

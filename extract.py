@@ -2,7 +2,12 @@ from zipfile import ZipFile
 import os
 from tqdm import tqdm
 
-from funcs import browse_for_file, get_files_of_type, remove_extension, browse_for_dir
+from funcs import browse_for_file, remove_extension, browse_for_dir
+
+"""
+Extracts a zipr file to a chosen output dir
+
+"""
 
 file = browse_for_file()
 save_dir = browse_for_dir()

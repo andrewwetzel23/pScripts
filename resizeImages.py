@@ -2,6 +2,11 @@ import os
 from tqdm import tqdm
 from funcs import browse_for_dir, get_images_from_dir, resize_image
 
+""" 
+Resizes all images in a chosen directory
+
+"""
+
 
 dir = browse_for_dir()
 size = [576, 352]

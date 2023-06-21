@@ -3,6 +3,12 @@ import numpy as np
 from funcs import browse_for_dir
 import os
 
+"""
+Orginal attempt at replacing yololabel with a python based gui labeler
+
+Good idea but needs to be cleaned up.
+"""
+
 def redraw_boxes(event, x, y, flags, params):
     global boxes, redraw, current_box, current_class_id
     if event == cv2.EVENT_LBUTTONDOWN:

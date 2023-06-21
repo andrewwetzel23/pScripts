@@ -3,6 +3,9 @@ from os.path import join
 import os
 from tqdm import tqdm
 
+""" removes annotations that don't have a specific object in them"""
+
+
 
 print('Choose the directory of the images:')
 image_dir = browse_for_dir()

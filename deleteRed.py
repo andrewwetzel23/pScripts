@@ -4,6 +4,13 @@ from PIL import Image
 
 from funcs import browse_for_dir
 
+"""
+Deletes all images in a directory with a strong red tint.
+
+Uses multithreading. Could use gpu one day
+
+"""
+
 # Function to process each image
 def process_image(filename):
     # Load the image
