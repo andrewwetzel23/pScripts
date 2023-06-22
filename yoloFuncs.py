@@ -1,7 +1,8 @@
 import os
 from tqdm import tqdm
 
-from fileFuncs import getTextFilesFromDirectory
+
+from fileFuncs import getTextFilesFromDirectory, splitFileFromExtension
 
 def removeClusteredDetections(dir):
     txts = getTextFilesFromDirectory(dir)
@@ -11,7 +12,8 @@ def removeClusteredDetections(dir):
             count = len(f.readlines())
         if count > 8:
             os.remove(os.path.join(dir, txt))
-            os.remove(os.path.join(dir, remove_extension(txt) + '.jpg'))
+            fileName, _ = splitFileFromExtension(txt)
+            os.remove(os.path.join(dir, fileName + '.jpg'))
             removed += 1
 
     print(f'Removed {removed} annotations')
