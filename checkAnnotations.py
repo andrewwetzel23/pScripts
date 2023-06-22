@@ -1,4 +1,4 @@
-from funcs import browse_for_dir, browse_for_file, get_images_from_dir, asd, convert_name_to_text
+from systemFuncs import browse_for_dir, browse_for_file, getImagesFromDirectory, asd, convert_name_to_text
 from pyFuncs import safeRemove
 import os
 import cv2
@@ -21,8 +21,8 @@ def consolidate(idir, sdir):
 	tDir = os.path.join(idir, "train")
 	vDir = os.path.join(idir, "valid")
 
-	tImages = get_images_from_dir(os.path.join(tDir, "images"))
-	vImages = get_images_from_dir(os.path.join(vDir, "images"))
+	tImages = getImagesFromDirectory(os.path.join(tDir, "images"))
+	vImages = getImagesFromDirectory(os.path.join(vDir, "images"))
 
 	for image in tqdm(tImages, "Consolidating from Train..."):
 		label = convert_name_to_text(image)
@@ -100,7 +100,7 @@ def check_dir(dir, weight):
 	ydir = os.path.join(dir, "ydir")
 	rdir = os.path.join(dir, "relabel")
 
-	images = get_images_from_dir(idir)
+	images = getImagesFromDirectory(idir)
 
 	# generate_yolo_labels(idir, ydir, weight)
 	create_windows()

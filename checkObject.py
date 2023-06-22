@@ -1,4 +1,4 @@
-from funcs  import browse_for_dir, get_images_from_dir, convert_name_to_text
+from systemFuncs  import browse_for_dir, getImagesFromDirectory, convert_name_to_text
 import os
 from tqdm import tqdm
 import shutil
@@ -20,7 +20,7 @@ def sort_images(dir):
 	idir = os.path.join(dir, "images")
 	ldir = os.path.join(dir, "labels")
 
-	images = get_images_from_dir(idir)
+	images = getImagesFromDirectory(idir)
 
 	for image in tqdm(images, f"Sorting dir"):
 		if "dark" not in image and "lite" not in image:

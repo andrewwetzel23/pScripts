@@ -1,6 +1,6 @@
 import cv2
 import torch.nn as nn
-from funcs import get_images_from_dir, browse_for_dir
+from systemFuncs import getImagesFromDirectory, browse_for_dir
 
 class DMB(nn.Module):
     # YOLOv5 MultiBackend class for python inference on various backends
@@ -13,7 +13,7 @@ class DMB(nn.Module):
 
 
 image_dir = browse_for_dir()
-images = get_images_from_dir(image_dir)
+images = getImagesFromDirectory(image_dir)
 model_add = "best.onnx"
 
 # model = DMB(weights=model_add)

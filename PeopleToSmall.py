@@ -1,4 +1,4 @@
-from funcs import browse_for_dir, get_images_from_dir
+from systemFuncs import browse_for_dir, getImagesFromDirectory
 from tqdm import tqdm
 import os
 import shutil
@@ -18,7 +18,7 @@ AR = SIZE[0]/SIZE[1]
 people_dir = browse_for_dir()
 small_dir = browse_for_dir()
 
-images = get_images_from_dir(people_dir)
+images = getImagesFromDirectory(people_dir)
 count = 0
 print(len(images))
 dir_count = ceil(len(images) / 10000)

@@ -2,7 +2,7 @@ import os
 import concurrent.futures
 from PIL import Image
 
-from funcs import browse_for_dir
+from systemFuncs import browse_for_dir
 
 """
 Deletes all images in a directory with a strong red tint.

@@ -1,4 +1,4 @@
-from funcs import browseForDir
+from systemFuncs import browseForDir
 
 import os
 from glob import glob

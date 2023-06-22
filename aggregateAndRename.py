@@ -3,7 +3,7 @@ from tqdm import tqdm
 import cv2
 import os
 
-from funcs import browse_for_dir, get_subdirectories, get_images_from_dir, remove_extension
+from systemFuncs import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, remove_extension
 
 """
 
@@ -14,15 +14,15 @@ Collects all images in subdirectories of selected directory, collects them in a 
 
 dir = browse_for_dir()
 save_dir = browse_for_dir()
-subdirs = get_subdirectories(dir)
+subdirs = getSubdirectoriesFromDirectory(dir)
 
 all_images = []
 for subdir in subdirs:
-	images = get_images_from_dir(join(dir, subdir))
+	images = getImagesFromDirectory(join(dir, subdir))
 	for image in tqdm(images, desc=f'Getting files from {subdir}'):
 		all_images.append(join(dir, subdir, image))
 
-i = len(get_images_from_dir(save_dir))
+i = len(getImagesFromDirectory(save_dir))
 print(i)
 for image in tqdm(all_images, desc=f'Moving all images to {save_dir}'):
 	img = cv2.imread(image)

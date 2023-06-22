@@ -1,7 +1,7 @@
 import cv2, os, shutil
 from tqdm import tqdm
 import numpy as np
-from  funcs import browse_for_dir, get_images_from_dir
+from  systemFuncs import browse_for_dir, getImagesFromDirectory
 
 
 """
@@ -18,7 +18,7 @@ def create_window():
 	cv2.waitKey(1)
 
 dir = browse_for_dir()
-images = get_images_from_dir(dir)
+images = getImagesFromDirectory(dir)
 
 create_window()
 for image in tqdm(images):

@@ -5,7 +5,7 @@ from tqdm import tqdm
 import shutil
 
 
-from funcs import browse_for_dir, get_subdirectories, get_images_from_dir, get_extension, convert_name_to_text
+from systemFuncs import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, get_extension, convert_name_to_text
 
 """
 Removes all duplicate files from a directory and renames them from 0 to N
@@ -56,7 +56,7 @@ for root, folders, files in list_of_files:
 
 
 
-images = get_images_from_dir(dir)
+images = getImagesFromDirectory(dir)
 i = 0
 for image in tqdm(images, desc=f'Renaming images...'):
 		ext = get_extension(image)

@@ -1,2 +1,2 @@
-from funcs import get_extension
+from systemFuncs import get_extension
 
