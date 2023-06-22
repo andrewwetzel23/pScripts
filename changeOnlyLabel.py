@@ -1,9 +1,8 @@
-from funcs import browse_for_dir, get_texts_from_dir
-import os
+from fileFuncs import browse_for_dir, getTextFilesFromDirectory
 from tqdm import tqdm
 
 dir = browse_for_dir()
-texts = get_texts_from_dir(dir)
+texts = getTextFilesFromDirectory(dir)
 
 """
 Replaces the first charcter in each line of every text file in a chosen directory.
