@@ -2,7 +2,7 @@ import openpyxl
 from bs4 import BeautifulSoup
 import sys
 sys.path.append('..')
-from pyFuncs import browseForFile, browseForDir, getFilesFromDir
+from pyn import browseForFile, browseForDir, getFilesFromDir
 import openpyxl
 import webbrowser
 import os
