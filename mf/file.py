@@ -10,9 +10,12 @@ from tkinter.filedialog import askdirectory, askopenfilename
 from pathlib import Path
 from tqdm import tqdm
 import hashlib
+import re
+
+from .defs import IMAGE_EXTENSIONS
 
 # BrowseForDir: Open a dialog to browse for a directory.
-def browseForDir():
+def browseForDirectory():
 	tkinter.Tk().withdraw()
 	return askdirectory()
 
@@ -34,16 +37,25 @@ def getVideosFromDirectory(path):
             list_of_videos.append(f)
     return list_of_videos
 
-# GetFilesFromDir: Get files with specified extensions from a directory, optionally recursive.
-def getFilesFromDirectory(dir, exts=[""], recursive=False):
-	files = []
-	for ext in exts:
-		files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=recursive))
-	return files
+def getFilesFromDirectory(dir, exts=None, recursive=False):
+    if exts is None:
+        exts = [""]
 
-# GetImagesFromDir: Get image files from a directory, optionally recursive.
+    if not os.path.isdir(dir):
+        raise ValueError(f"Directory does not exist: {dir}")
+
+    files = []
+    for ext in exts:
+        if not ext.startswith("."):
+            ext = "." + ext
+        files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=recursive))
+    return files
+
 def getImagesFromDirectory(dir, recursive=False):
-	return getFilesFromDirectory(dir, exts=[".jpeg", ".jpg", ".png"], recursive=recursive)
+    if not isinstance(IMAGE_EXTENSIONS, list) or not all(isinstance(item, str) for item in IMAGE_EXTENSIONS):
+        raise ValueError("IMAGE_EXTENSIONS must be a list of strings")
+    return getFilesFromDirectory(dir, exts=IMAGE_EXTENSIONS, recursive=recursive)
+
 
 # Returns list of text files from a given directory
 def getTextFilesFromDirectory(path):
@@ -175,3 +187,35 @@ def removeDuplicates(directory):
                 count += 1
                 
     return count
+
+def get_matching_text_file(image_path):
+    ext_pattern = '|'.join(IMAGE_EXTENSIONS).replace('.', r'\.')
+    return re.sub(f'({ext_pattern})$', '.txt', image_path, flags=re.IGNORECASE)
+
+def remove_matching_img(txt_file):
+    deletedFiles = []
+
+    # Get the base name of the text file without the extension
+    base_name = os.path.splitext(txt_file)[0]
+
+    # Define the directory in which the text file resides
+    dir_name = os.path.dirname(txt_file)
+
+    # Loop through all files in the directory
+    for file_name in os.listdir(dir_name):
+        # Check if the file is an image file with matching base name
+        if any(file_name.lower() == base_name + ext for ext in IMAGE_EXTENSIONS):
+            # If it is, delete the file
+            os.remove(os.path.join(dir_name, file_name))
+            deletedFiles += file_name
+
+    return deletedFiles
+
+# Removes last word from each line
+def removeLastWords(txt):
+    with open(txt, 'r') as f:
+        lines = [line[:line.rstrip().rfind(' ')] for line in f]
+
+    with open(txt, 'w') as f:
+        for line in lines:
+            f.write(f'{line}\n')

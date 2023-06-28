@@ -2,7 +2,9 @@ import cv2
 import os
 from tqdm import tqdm
 from PIL import Image
-from file import getImagesFromDirectory, generateImageName
+
+from .file import getImagesFromDirectory, generateImageName
+from .defs import IMAGE_EXTENSIONS
 
 # ImagesToGrayscale: Converts all images in a directory to grayscale
 def imagesToGrayscale(path):
@@ -34,6 +36,9 @@ def convertVideoToJpgs(videoPath, outputPath, fps):
         frameCount += 1
 
 def imageIsGrayscale(image):
+    # Convert image to RGB if it's not
+    if image.mode != "RGB":
+        image = image.convert("RGB")
     # Get the RGB pixel values of the image
     pixels = image.getdata()
 
@@ -43,7 +48,9 @@ def imageIsGrayscale(image):
     else:
         return False
 
+
 def deleteGrayscaleImages(directory):
+    count = 0
     for file_name in tqdm(os.listdir(directory)):
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
@@ -51,9 +58,10 @@ def deleteGrayscaleImages(directory):
                 image = Image.open(file_path)
                 if imageIsGrayscale(image):
                     os.remove(file_path)
-                    print(f"Deleted black and white photo: {file_name}")
+                    count += 1
             except (IOError, OSError):
                 print(f"Error opening or processing file: {file_name}")
+    return count
 
 
 def resizeImages(dir, size, recursiveSearch=False, keepAspectRatio=True):
@@ -94,3 +102,17 @@ def resizeImage(imagePath: str, targetSize: tuple, keepAspectRatio=True):
 
     # Write the resized image back to the file
     cv2.imwrite(imagePath, imageResized)
+
+def deleteBadImages(dir, console):
+    images = getImagesFromDirectory(dir)
+
+    count = 0
+    for image in tqdm(images, file=console, desc="Removing bad images"):
+        count += 1
+        imagePath = os.path.join(dir, image)
+        if os.path.getsize(imagePath) == 0:
+            os.remove(imagePath)
+    if count > 0:
+        console.print(f"Remove {count} bad images.")
+    else:
+        console.print("No bad images found.")
