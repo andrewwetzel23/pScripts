@@ -1,4 +1,4 @@
-from systemFuncs import browse_for_dir, getImagesFromDirectory
+from system import browse_for_dir, getImagesFromDirectory
 from tqdm import tqdm
 import os
 import shutil

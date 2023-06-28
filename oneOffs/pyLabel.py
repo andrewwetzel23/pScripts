@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from systemFuncs import browse_for_dir
+from system import browse_for_dir
 import os
 
 """

@@ -1,4 +1,4 @@
-from systemFuncs import getTextFilesFromDirectory, browse_for_dir, remove_extension
+from system import getTextFilesFromDirectory, browse_for_dir, remove_extension
 import os
 from tqdm import tqdm
 

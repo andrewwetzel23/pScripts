@@ -3,7 +3,7 @@ from tqdm import tqdm
 import cv2
 import os
 
-from systemFuncs import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, remove_extension
+from system import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, remove_extension
 
 """
 

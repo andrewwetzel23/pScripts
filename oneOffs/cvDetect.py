@@ -1,6 +1,6 @@
 import cv2
 import torch.nn as nn
-from systemFuncs import getImagesFromDirectory, browse_for_dir
+from system import getImagesFromDirectory, browse_for_dir
 
 class DMB(nn.Module):
     # YOLOv5 MultiBackend class for python inference on various backends

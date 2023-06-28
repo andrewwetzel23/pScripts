@@ -1,7 +1,7 @@
 from os.path import join
 from os import listdir
 from tqdm import tqdm
-from systemFuncs import browse_for_dir
+from system import browse_for_dir
 
 """ 
 Removes all annotations who don't have a matching test at the beginning of each line

@@ -2,7 +2,7 @@ from zipfile import ZipFile
 import os
 from tqdm import tqdm
 
-from systemFuncs import browse_for_dir, getFilesFromDirectory, remove_extension
+from system import browse_for_dir, getFilesFromDirectory, remove_extension
 
 """
 Extracts all zip files in a chosen directory into a chosen output directory

@@ -2,7 +2,7 @@ from os.path import join
 from tqdm import tqdm
 import shutil
 
-from systemFuncs import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, get_extension
+from system import browse_for_dir, getSubdirectoriesFromDirectory, getImagesFromDirectory, get_extension
 
 
 dir = browse_for_dir()

@@ -1,7 +1,7 @@
 import cv2
 from tqdm import tqdm
 
-from systemFuncs import browse_for_file
+from system import browse_for_file
 
 """ 
 Converts large csv file of annotations data from a _____ repository to yolov5/yolov8 copliant annotaitons

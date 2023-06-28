@@ -1,6 +1,6 @@
 import os
 from tqdm import tqdm
-from systemFuncs import browse_for_dir, getImagesFromDirectory, resize_image
+from system import browse_for_dir, getImagesFromDirectory, resize_image
 
 """ 
 Resizes all images in a chosen directory

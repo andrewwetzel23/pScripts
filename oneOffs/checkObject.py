@@ -1,4 +1,4 @@
-from systemFuncs  import browse_for_dir, getImagesFromDirectory, convert_name_to_text
+from system  import browse_for_dir, getImagesFromDirectory, convert_name_to_text
 import os
 from tqdm import tqdm
 import shutil

@@ -1,7 +1,7 @@
 import os
 import shutil
 from tqdm import tqdm
-from pyn import browseForDir, createDirectory
+from dec import browseForDir, createDirectory
 
 """
 Move all images that have a corresponding text file with a line starting with "1" to a new folder

@@ -1,7 +1,7 @@
 import cv2, os, shutil
 from tqdm import tqdm
 import numpy as np
-from  systemFuncs import browse_for_dir, getImagesFromDirectory
+from  system import browse_for_dir, getImagesFromDirectory
 
 
 """

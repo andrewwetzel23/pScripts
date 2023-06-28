@@ -1,5 +1,5 @@
-from systemFuncs import browse_for_dir, browse_for_file, getImagesFromDirectory, asd, convert_name_to_text
-from pyn import safeRemove
+from system import browse_for_dir, browse_for_file, getImagesFromDirectory, asd, convert_name_to_text
+from dec import safeRemove
 import os
 import cv2
 import shutil
