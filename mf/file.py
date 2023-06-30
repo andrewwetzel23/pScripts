@@ -48,8 +48,14 @@ def getFilesFromDirectory(dir, exts=None, recursive=False):
     for ext in exts:
         if not ext.startswith("."):
             ext = "." + ext
-        files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=recursive))
+
+        if recursive:
+            files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True))
+        else:
+            files.extend(glob.glob(os.path.join(dir, "*"+ext)))
+
     return files
+
 
 def getImagesFromDirectory(dir, recursive=False):
     if not isinstance(IMAGE_EXTENSIONS, list) or not all(isinstance(item, str) for item in IMAGE_EXTENSIONS):
