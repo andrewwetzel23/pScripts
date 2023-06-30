@@ -2,7 +2,7 @@ import os
 import concurrent.futures
 from PIL import Image
 
-from system import browse_for_dir
+import mf
 
 """
 Deletes all images in a directory with a strong red tint.
@@ -34,7 +34,7 @@ def process_image(filename):
     return False
 
 # Change this to the directory you want to use
-directory = browse_for_dir()
+directory = mf.browseForDirectory()
 
 # Get a list of all image files in the directory
 image_files = [os.path.join(directory, filename) for filename in os.listdir(directory)
