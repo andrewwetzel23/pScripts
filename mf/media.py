@@ -65,9 +65,9 @@ def deleteGrayscaleImages(directory):
 
 
 def resizeImages(dir, size, recursiveSearch=False, keepAspectRatio=True):
-	images = getImagesFromDirectory(dir, recursiveSearch)
-	for image in tqdm(images, "Resizing images..."):
-		resizeImage(image, size, keepAspectRatio)
+    images = getImagesFromDirectory(dir, recursiveSearch)
+    for image in tqdm(images, "Resizing images..."):
+        resizeImage(image, size, keepAspectRatio)
 
 
 # ResizeImage: Resize an image, optionally keeping its aspect ratio.
