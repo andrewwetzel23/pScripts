@@ -11,6 +11,7 @@ from pathlib import Path
 from tqdm import tqdm
 import hashlib
 import re
+import datetime
 
 from .defs import IMAGE_EXTENSIONS
 
@@ -145,6 +146,30 @@ def removeFile(file):
             return False
     return True
 
+def move(src, dest_dir, replace=False):
+    # Check if src file exists
+    if not os.path.isfile(src):
+        print(f"Source file does not exist: {src}")
+        return
+
+    # Check if destination directory exists, if not create it
+    if not os.path.isdir(dest_dir):
+        print(f"Destination directory does not exist, creating it: {dest_dir}")
+        os.makedirs(dest_dir)
+
+    filename = os.path.basename(src)
+    dest_path = os.path.join(dest_dir, filename)
+
+    # If a file with the same name exists in the destination directory
+    if os.path.exists(dest_path):
+        if replace:
+            shutil.move(src, dest_path)
+
+        os.remove(src)
+    else:
+        # If the file does not exist in the destination directory, move it
+        shutil.move(src, dest_path)
+
 # CreateDirectory: Safely create a new directory, with optional overwrite.
 def createDirectory(dir, overwrite=True):
     try:
@@ -225,3 +250,38 @@ def removeLastWords(txt):
     with open(txt, 'w') as f:
         for line in lines:
             f.write(f'{line}\n')
+
+def sortByDate(src_dir):
+    # iterate over all the files in the directory
+    for filename in tqdm(os.listdir(src_dir)):
+        file = os.path.join(src_dir, filename)
+
+        # ignore directories
+        if os.path.isfile(file):
+            # get the modification time and convert it into a date string
+            date = get_creation_time(file)
+
+            # create a new directory path
+            new_dir = os.path.join(src_dir, date)
+
+            # create new directory if it doesn't exist
+            if not os.path.exists(new_dir):
+                createDirectory(new_dir)
+
+            # move the file to new directory
+            move(file, new_dir)
+
+def get_creation_time(filename):
+    # Regular expression pattern to match Unix timestamp in filename
+    pattern = r'(\d{10})'
+    
+    # Search for Unix timestamp in filename
+    match = re.search(pattern, filename)
+
+    if match:
+        # Convert Unix timestamp to date
+        timestamp = int(match.group(1))
+        date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+        return date
+    else:
+        return None
