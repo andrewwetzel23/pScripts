@@ -43,10 +43,6 @@ def containsMuchRed(filename, number_of_pixels):
     return False
 
 
-# Change this to the directory you want to use
-directory = mf.browseForDirectory()
-
-
 
 def deleteRedFromDirectory(directory):
     # Get a list of all image files in the directory
