@@ -152,7 +152,7 @@ def containsMuchRed(filename, number_of_pixels):
 def deleteRedFromDirectory(directory):
     # Get a list of all image files in the directory
     image_files = [os.path.join(directory, filename) for filename in os.listdir(directory)
-                if filename.endswith(".jpg") or filename.endswith(".png")]
+                if (filename.endswith(".jpg") or filename.endswith(".png")) and os.path.isfile(os.path.join(directory, filename))]
 
     # Use a ThreadPoolExecutor to process multiple images in parallel
     deleted_images = 0
@@ -165,4 +165,4 @@ def deleteRedFromDirectory(directory):
             if future.result():
                 deleted_images += 1
             # Print progress
-            print(f"Progress: {i}/{len(image_files)} ({100.0 * i / len(image_files):.2f}%), Deleted images: {deleted_images}", end='\r')
+            print(f"Progress: {i}/{len(image_files)} ({100.0 * i / len(image_files):.2f}%), Deleted Red Images: {deleted_images}", end='\r')
