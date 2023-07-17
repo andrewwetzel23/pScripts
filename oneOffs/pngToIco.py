@@ -1,5 +1,5 @@
 from PIL import Image
-import os
+
 import mf
 
 def convert_png_to_ico(png_path, ico_path):
@@ -8,9 +8,4 @@ def convert_png_to_ico(png_path, ico_path):
 
 # Usage
 pngPath = mf.browseForFile()
-# Get the directory of the png file
-pngDir = os.path.dirname(pngPath)
-# Combine directory with the ico filename
-icoPath = os.path.join(pngDir, 'icon.ico')
-# Convert png to ico
-convert_png_to_ico(pngPath, icoPath)
+convert_png_to_ico(pngPath, 'icon.ico')

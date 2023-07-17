@@ -1,7 +1,4 @@
 import os
-import zipfile
-import tarfile
-import gzip
 import shutil
 import tkinter
 import errno
