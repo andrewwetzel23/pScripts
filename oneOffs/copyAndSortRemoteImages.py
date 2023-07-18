@@ -35,7 +35,7 @@ def copy_new_files(remote_user, remote_password, remote_host, remote_path, local
     
 
 # Remove the temporary file
-# os.remove('exclude_files.txt')
+mf.removeFile('exclude_files.txt')
 
 # Set your parameters here
 remote_user = 'andrew'
@@ -45,8 +45,8 @@ remote_path = '/mnt/md5/HX500/lpunit0002/images/'
 local_path = '/home/andrew/Desktop/images/'
 record_file = 'copied_files.txt'
 
-# copy_new_files(remote_user, remote_password, remote_host, remote_path, local_path, record_file)
+copy_new_files(remote_user, remote_password, remote_host, remote_path, local_path, record_file)
 
 mf.deleteRedFromDirectory(local_path)
-mf.resizeImages(local_path, 576, 352)
+mf.resizeImages(local_path, [576, 352])
 mf.sortByDate(local_path)
