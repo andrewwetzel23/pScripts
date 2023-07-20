@@ -1,7 +1,8 @@
-from system  import browse_for_dir, getImagesFromDirectory, convert_name_to_text
 import os
 from tqdm import tqdm
 import shutil
+
+import mf
 
 """
 Consolidates all annotation data from a yolov5/yolov8 annotations directory
@@ -10,8 +11,8 @@ excluding those with the name 'dark' or 'lite' in their names
 No longer used.
 """
 
-dir = browse_for_dir()
-sdir = browse_for_dir()
+dir = mf.browseForDirectory()
+sdir = mf.browseForDirectory()
 
 vdir = os.path.join(dir, "valid")
 tdir = os.path.join(dir, "train")
@@ -20,12 +21,12 @@ def sort_images(dir):
 	idir = os.path.join(dir, "images")
 	ldir = os.path.join(dir, "labels")
 
-	images = getImagesFromDirectory(idir)
+	images = mf.getImagesFromDirectory(idir)
 
 	for image in tqdm(images, f"Sorting dir"):
 		if "dark" not in image and "lite" not in image:
 			present = False
-			label = convert_name_to_text(image)
+			label = mf.convertNameToText(image)
 			with open(os.path.join(ldir, label), 'r') as f:
 				lines = f.readlines()
 				for line in lines:
