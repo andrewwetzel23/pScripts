@@ -178,6 +178,23 @@ def move(src, dest_dir, replace=False):
         # If the file does not exist in the destination directory, move it
         shutil.move(src, dest_path)
 
+def delete(path):
+    if os.path.isfile(path):
+        try:
+            os.remove(path)
+            print(f"File {path} has been deleted.")
+        except Exception as e:
+            print(f"Error occurred while trying to delete file: {e}")
+    elif os.path.isdir(path):
+        try:
+            shutil.rmtree(path)
+            print(f"Directory {path} has been deleted.")
+        except Exception as e:
+            print(f"Error occurred while trying to delete directory: {e}")
+    else:
+        print(f"The path {path} does not exist.")
+
+
 def copy(src, dest_dir, replace=False):
     # Check if src file exists
     if not os.path.isfile(src):
@@ -210,13 +227,13 @@ def createDirectory(dir, overwrite=True):
             if overwrite:
                 removeDirectory(dir)
             else:
-                print("Directory already exists and overwrite set to False.")
-                return False
+                err = "Directory already exists and overwrite set to False."
+                return dir, err
         os.mkdir(dir)
-        return True
+        return dir, ""
     except Exception as e:
-        print(f"Unable to create directory: {e}")
-        return False
+        err = f"Unable to create directory: {e}"
+        return None, err
 
 # RemoveDirectory: Safely remove a directory.
 def removeDirectory(dir):
@@ -321,3 +338,41 @@ def get_creation_time(filename):
     
 def convertNameToText(name):
     return os.path.splitext(name)[0] + '.txt'
+
+import os
+
+def deleteFileByLabel(label_path, directory, extensions=IMAGE_EXTENSIONS):
+    # Get the filename from the label_path
+    base_name = os.path.basename(label_path)
+
+    # For each extension, try to delete the file
+    for ext in extensions:
+        # Construct the full filename by appending the extension
+        filename = os.path.splitext(base_name)[0] + ext
+
+        # Construct the full file path
+        full_path = os.path.join(directory, filename)
+
+        # If the file exists, delete it
+        if os.path.isfile(full_path):
+            try:
+                mf.delete(full_path)  # using mf.delete for deleting files
+                print(f"Deleted {full_path}")
+            except Exception as e:
+                print(f"Error deleting {full_path}: {e}")
+
+
+def deleteFilesWithoutLabel(file_directory, label_directory, extensions=IMAGE_EXTENSIONS):
+    # Iterate over each file in the directory
+    for ext in extensions:
+        for filename in glob.glob(os.path.join(file_directory, '*'+ext)):
+            # Construct the corresponding label path
+            label_path = os.path.join(label_directory, os.path.splitext(os.path.basename(filename))[0] + '.txt')
+
+            # If the label file does not exist, delete the file
+            if not os.path.isfile(label_path):
+                try:
+                    mf.delete(filename)  # using mf.delete for deleting files
+                    print(f"Deleted {filename}")
+                except Exception as e:
+                    print(f"Error deleting {filename}: {e}")
