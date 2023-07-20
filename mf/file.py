@@ -9,6 +9,9 @@ from tqdm import tqdm
 import hashlib
 import re
 import datetime
+import zipfile
+import tarfile
+import gzip
 
 from .defs import IMAGE_EXTENSIONS
 
@@ -48,9 +51,17 @@ def getFilesFromDirectory(dir, exts=None, recursive=False):
             ext = "." + ext
 
         if recursive:
-            files.extend(glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True))
+            paths = glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True)
+            print(f"Looking for '*{ext}' files in '{dir}' and subdirectories:")
         else:
-            files.extend(glob.glob(os.path.join(dir, "*"+ext)))
+            paths = glob.glob(os.path.join(dir, "*"+ext))
+            print(f"Looking for '*{ext}' files in '{dir}':")
+
+        if paths:
+            print("Found files:", paths)
+        else:
+            print("No files found.")
+        files.extend(paths)
 
     return files
 
@@ -167,6 +178,31 @@ def move(src, dest_dir, replace=False):
         # If the file does not exist in the destination directory, move it
         shutil.move(src, dest_path)
 
+def copy(src, dest_dir, replace=False):
+    # Check if src file exists
+    if not os.path.isfile(src):
+        print(f"Source file does not exist: {src}")
+        return
+
+    # Check if destination directory exists, if not create it
+    if not os.path.isdir(dest_dir):
+        print(f"Destination directory does not exist, creating it: {dest_dir}")
+        os.makedirs(dest_dir)
+
+    filename = os.path.basename(src)
+    dest_path = os.path.join(dest_dir, filename)
+
+    # If a file with the same name exists in the destination directory
+    if os.path.exists(dest_path):
+        if replace:
+            # If the replace option is true, remove the old file and copy the new one
+            os.remove(dest_path)
+            shutil.copy(src, dest_path)
+    else:
+        # If the file does not exist in the destination directory, copy it
+        shutil.copy(src, dest_path)
+
+
 # CreateDirectory: Safely create a new directory, with optional overwrite.
 def createDirectory(dir, overwrite=True):
     try:
@@ -216,11 +252,11 @@ def removeDuplicates(directory):
                 
     return count
 
-def get_matching_text_file(image_path):
+def getMatchingTextFile(image_path):
     ext_pattern = '|'.join(IMAGE_EXTENSIONS).replace('.', r'\.')
     return re.sub(f'({ext_pattern})$', '.txt', image_path, flags=re.IGNORECASE)
 
-def remove_matching_img(txt_file):
+def removeMatchingImage(txt_file):
     deletedFiles = []
 
     # Get the base name of the text file without the extension
@@ -282,3 +318,6 @@ def get_creation_time(filename):
         return date
     else:
         return None
+    
+def convertNameToText(name):
+    return os.path.splitext(name)[0] + '.txt'
