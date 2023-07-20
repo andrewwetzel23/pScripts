@@ -14,6 +14,9 @@ setup(
         "opencv-python-headless",  # cv2
         "pillow",
         "tqdm",
+        "zipfile",
+        "tarfile",
+        "gzip"
     ],
 
     classifiers=[
