@@ -52,15 +52,9 @@ def getFilesFromDirectory(dir, exts=None, recursive=False):
 
         if recursive:
             paths = glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True)
-            print(f"Looking for '*{ext}' files in '{dir}' and subdirectories:")
         else:
             paths = glob.glob(os.path.join(dir, "*"+ext))
-            print(f"Looking for '*{ext}' files in '{dir}':")
 
-        if paths:
-            print("Found files:", paths)
-        else:
-            print("No files found.")
         files.extend(paths)
 
     return files
@@ -100,6 +94,10 @@ def removeLastWords(txtFile):
 def splitFileFromExtension(file):
     fileName, extension = os.path.splitext(file)
     return fileName, extension
+
+def splitDirectoryFromFile(file_path):
+    directory, file_name = os.path.split(file_path)
+    return directory, file_name
 
 
 # Unzips Files
@@ -171,9 +169,8 @@ def move(src, dest_dir, replace=False):
     # If a file with the same name exists in the destination directory
     if os.path.exists(dest_path):
         if replace:
+            # If replace is True, move the file, replacing the existing file
             shutil.move(src, dest_path)
-
-        os.remove(src)
     else:
         # If the file does not exist in the destination directory, move it
         shutil.move(src, dest_path)
@@ -182,15 +179,15 @@ def delete(path):
     if os.path.isfile(path):
         try:
             os.remove(path)
-            print(f"File {path} has been deleted.")
+            return True
         except Exception as e:
-            print(f"Error occurred while trying to delete file: {e}")
+            return False
     elif os.path.isdir(path):
         try:
             shutil.rmtree(path)
-            print(f"Directory {path} has been deleted.")
+            return True
         except Exception as e:
-            print(f"Error occurred while trying to delete directory: {e}")
+            return False
     else:
         print(f"The path {path} does not exist.")
 
@@ -198,8 +195,7 @@ def delete(path):
 def copy(src, dest_dir, replace=False):
     # Check if src file exists
     if not os.path.isfile(src):
-        print(f"Source file does not exist: {src}")
-        return
+        return False
 
     # Check if destination directory exists, if not create it
     if not os.path.isdir(dest_dir):
@@ -356,10 +352,9 @@ def deleteFileByLabel(label_path, directory, extensions=IMAGE_EXTENSIONS):
         # If the file exists, delete it
         if os.path.isfile(full_path):
             try:
-                mf.delete(full_path)  # using mf.delete for deleting files
-                print(f"Deleted {full_path}")
+                delete(full_path)  # using mf.delete for deleting files
             except Exception as e:
-                print(f"Error deleting {full_path}: {e}")
+                pass
 
 
 def deleteFilesWithoutLabel(file_directory, label_directory, extensions=IMAGE_EXTENSIONS):
@@ -372,7 +367,7 @@ def deleteFilesWithoutLabel(file_directory, label_directory, extensions=IMAGE_EX
             # If the label file does not exist, delete the file
             if not os.path.isfile(label_path):
                 try:
-                    mf.delete(filename)  # using mf.delete for deleting files
+                    delete(filename)  # using mf.delete for deleting files
                     print(f"Deleted {filename}")
                 except Exception as e:
                     print(f"Error deleting {filename}: {e}")

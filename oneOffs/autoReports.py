@@ -53,7 +53,7 @@ def send_email_with_files(recipients, file_path):
     server.starttls()
 
     # Login to your email account
-    server.login('awetzel@lionpowerusa.com', os.getenv('EMAIL_PASSWORD'))  # get password from environment variable
+    server.login('awetzel@lionpowerusa.com', '8R2vBi_7,ui^j;d')  # get password from environment variable
 
     # Send the email
     for recipient in recipients:
@@ -91,7 +91,7 @@ def generate_reports(executable_path):
 
 def main():
     generate_reports("/home/andrew/Desktop/internal/LpReportGenerator")
-    recipients = ["awetzel@lionpowerusa.com"] #"jsleconich@lionpowerusa.com", "mwalker@lionpowerusa.com", 
+    recipients = ["jsleconich@lionpowerusa.com", "mwalker@lionpowerusa.com", "awetzel@lionpowerusa.com"] #
     send_email_with_files(recipients, '/home/andrew/Desktop/internal/fnames.txt')
 
 # Test the function
