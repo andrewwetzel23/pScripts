@@ -65,6 +65,58 @@ def getImagesFromDirectory(dir, recursive=False):
         raise ValueError("IMAGE_EXTENSIONS must be a list of strings")
     return getFilesFromDirectory(dir, exts=IMAGE_EXTENSIONS, recursive=recursive)
 
+def moveImages(sourceDirectory, destinationDirectory, sideDirectories=[], skipDuplicates=True, recursive=True, ignore_hashes=[]):
+    try:
+        images = getImagesFromDirectory(sourceDirectory, recursive=recursive)
+        if not images:
+            print("Selected directory did not contain any images.")
+            return
+        
+        # Dictionary to hold unique images from directories if skip_duplicates is set
+        unique_files = dict() if skipDuplicates else None
+
+        # List of directories to check for existing files
+        directories = [destinationDirectory]
+        if skipDuplicates:
+            for directory in sideDirectories:
+                directories.append(directory)
+
+        if skipDuplicates:
+            # Listing out all the files inside our directories
+            for directory in directories:
+                list_of_files = os.walk(directory)
+                for root, _, files in list_of_files:
+                    # Running a for loop on all the files
+                    for file in files:
+                        # Finding complete file path
+                        file_path = Path(os.path.join(root, file))
+
+                        # Converting all the content of our file into md5 hash.
+                        Hash_file = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
+                        
+                        # Add file hash to the dictionary
+                        unique_files[Hash_file] = file_path
+        
+        # Copy only those images that do not exist in the specified directories and not in ignore list
+        for image in tqdm(images, desc='Loading Images'):
+            image_path = Path(os.path.join(sourceDirectory, image))
+            if skipDuplicates:
+                # Compute md5 hash of the image
+                image_hash = hashlib.md5(open(image_path, 'rb').read()).hexdigest()
+                # Copy the image only if it's not present in the specified directories and not in ignore list
+                if image_hash not in unique_files and image_hash not in ignore_hashes:
+                    shutil.copy2(image_path, destinationDirectory)
+            else:
+                # Copy the image only if it's not in ignore list
+                if image_hash not in ignore_hashes:
+                    shutil.copy2(image_path, destinationDirectory)
+
+    except Exception as e:
+        print(f"Error occurred while loading media: {str(e)}")
+
+    return list(unique_files.keys()) if unique_files is not None else []
+
+
 
 # Returns list of text files from a given directory
 def getTextFilesFromDirectory(path):
