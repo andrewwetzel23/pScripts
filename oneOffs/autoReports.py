@@ -91,7 +91,7 @@ def generate_reports(executable_path):
 
 def main():
     generate_reports("/home/andrew/Desktop/internal/LpReportGenerator")
-    recipients = ["jsleconich@lionpowerusa.com", "mwalker@lionpowerusa.com", "awetzel@lionpowerusa.com"] #
+    recipients = ["awetzel@lionpowerusa.com"]#"jsleconich@lionpowerusa.com", "mwalker@lionpowerusa.com", "awetzel@lionpowerusa.com"] #
     send_email_with_files(recipients, '/home/andrew/Desktop/internal/fnames.txt')
 
 # Test the function
