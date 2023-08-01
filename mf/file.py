@@ -12,107 +12,137 @@ import datetime
 import zipfile
 import tarfile
 import gzip
+import logging
 
-from .defs import IMAGE_EXTENSIONS
+from .defs import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS
+
+logger = logging.getLogger(__name__)
 
 # BrowseForDir: Open a dialog to browse for a directory.
 def browseForDirectory():
-	tkinter.Tk().withdraw()
-	return askdirectory()
+    logger.debug('Opening dialog to browse for a directory.')
+    try:
+        tkinter.Tk().withdraw()
+        return askdirectory()
+    except Exception as e:
+        logger.error(f"Error while browsing for a directory: {str(e)}")
 
 # BrowseForFile: Open a dialog to browse for a file.
 def browseForFile():
-	tkinter.Tk().withdraw()
-	return askopenfilename()
+    logger.debug('Opening dialog to browse for a file.')
+    try:
+        tkinter.Tk().withdraw()
+        return askopenfilename()
+    except Exception as e:
+        logger.error(f"Error while browsing for a file: {str(e)}")
 
-# Returns list of directories from a given directory
-def getSubdirectoriesFromDirectory(path):
-    return [f.name for f in os.scandir(path) if f.is_dir()]
+import logging
+import os
+import glob
 
-# Returns list of videos from a given directory
-def getVideosFromDirectory(path):
-    list_of_files = os.listdir(path)
-    list_of_videos = []
-    for f in list_of_files:
-        if f.endswith('.mp4'):
-            list_of_videos.append(f)
-    return list_of_videos
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+VIDEO_EXTENSIONS = ['mp4', 'avi', 'mov'] # insert your video extensions here
+IMAGE_EXTENSIONS = ['jpg', 'png', 'bmp'] # insert your image extensions here
+
+def getSubdirectoriesFromDirectory(path, recursive=False):
+    logger.debug(f"Getting list of directories from: {path}")
+    try:
+        if recursive:
+            subdirs = [os.path.join(dp, f) for dp, dn, _ in os.walk(os.path.expanduser(path)) for f in dn]
+        else:
+            subdirs = [f.path for f in os.scandir(path) if f.is_dir()]
+
+        return subdirs
+    except Exception as e:
+        logger.error(f"Error while getting directories from: {path}. Error: {str(e)}")
+
+
 
 def getFilesFromDirectory(dir, exts=None, recursive=False):
+    logger.debug(f"Getting files from directory: {dir} with extensions: {exts}")
     if exts is None:
         exts = [""]
 
     if not os.path.isdir(dir):
+        logger.error(f"Directory does not exist: {dir}")
         raise ValueError(f"Directory does not exist: {dir}")
 
     files = []
     for ext in exts:
-        if not ext.startswith("."):
-            ext = "." + ext
-
-        if recursive:
-            paths = glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True)
-        else:
-            paths = glob.glob(os.path.join(dir, "*"+ext))
-
-        files.extend(paths)
-
+        ext = "." + ext
+        try:
+            if recursive:
+                paths = glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True)
+            else:
+                paths = glob.glob(os.path.join(dir, "*"+ext))
+            files.extend(paths)
+        except Exception as e:
+            logger.error(f"Error while getting files from: {dir} with extension: {ext}. Error: {str(e)}")
+            
     return files
 
+def getVideosFromDirectory(directory, recursive=False):
+    if not isinstance(VIDEO_EXTENSIONS, list) or not all(isinstance(item, str) for item in VIDEO_EXTENSIONS):
+        raise ValueError("VIDEO_EXTENSIONS must be a list of strings")
+    
+    logger.debug(f"Getting list of videos from: {directory}")
+    try:
+        return getFilesFromDirectory(directory, exts=VIDEO_EXTENSIONS, recursive=recursive)
+    except Exception as e:
+        logger.error(f"Error while getting videos from: {directory}. Error: {str(e)}")
 
 def getImagesFromDirectory(dir, recursive=False):
     if not isinstance(IMAGE_EXTENSIONS, list) or not all(isinstance(item, str) for item in IMAGE_EXTENSIONS):
         raise ValueError("IMAGE_EXTENSIONS must be a list of strings")
-    return getFilesFromDirectory(dir, exts=IMAGE_EXTENSIONS, recursive=recursive)
+
+    logger.debug(f"Getting list of images from: {dir}")
+    try:
+        return getFilesFromDirectory(dir, exts=IMAGE_EXTENSIONS, recursive=recursive)
+    except Exception as e:
+        logger.error(f"Error while getting images from: {dir}. Error: {str(e)}")
+
+
+def collectExistingFiles(directories):
+    """Collect existing files in the directories."""
+    unique_files = dict()
+    for directory in directories:
+        list_of_files = os.walk(directory)
+        for root, _, files in list_of_files:
+            for file in files:
+                file_path = Path(os.path.join(root, file))
+                hash_file = calculateHash(file_path)
+                unique_files[hash_file] = file_path
+    return unique_files
+
+def copyImages(images, source_directory, destination_directory, unique_files, ignore_hashes, skip_duplicates):
+    """Copy images to the destination directory."""
+    for image in tqdm(images, desc='Loading Images'):
+        image_path = Path(os.path.join(source_directory, image))
+        image_hash = calculateHash(image_path)
+        if skip_duplicates and image_hash in unique_files or image_hash in ignore_hashes:
+            continue
+        shutil.copy2(image_path, destination_directory)
 
 def moveImages(sourceDirectory, destinationDirectory, sideDirectories=[], skipDuplicates=True, recursive=True, ignore_hashes=[]):
     try:
+        logger.info(f"Moving images from {sourceDirectory} to {destinationDirectory}")
         images = getImagesFromDirectory(sourceDirectory, recursive=recursive)
         if not images:
-            print("Selected directory did not contain any images.")
+            logger.warning("Selected directory did not contain any images.")
             return
-        
-        # Dictionary to hold unique images from directories if skip_duplicates is set
-        unique_files = dict() if skipDuplicates else None
 
-        # List of directories to check for existing files
-        directories = [destinationDirectory]
-        if skipDuplicates:
-            for directory in sideDirectories:
-                directories.append(directory)
-
-        if skipDuplicates:
-            # Listing out all the files inside our directories
-            for directory in directories:
-                list_of_files = os.walk(directory)
-                for root, _, files in list_of_files:
-                    # Running a for loop on all the files
-                    for file in files:
-                        # Finding complete file path
-                        file_path = Path(os.path.join(root, file))
-
-                        # Converting all the content of our file into md5 hash.
-                        Hash_file = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
-                        
-                        # Add file hash to the dictionary
-                        unique_files[Hash_file] = file_path
-        
-        # Copy only those images that do not exist in the specified directories and not in ignore list
-        for image in tqdm(images, desc='Loading Images'):
-            image_path = Path(os.path.join(sourceDirectory, image))
-            if skipDuplicates:
-                # Compute md5 hash of the image
-                image_hash = hashlib.md5(open(image_path, 'rb').read()).hexdigest()
-                # Copy the image only if it's not present in the specified directories and not in ignore list
-                if image_hash not in unique_files and image_hash not in ignore_hashes:
-                    shutil.copy2(image_path, destinationDirectory)
-            else:
-                # Copy the image only if it's not in ignore list
-                if image_hash not in ignore_hashes:
-                    shutil.copy2(image_path, destinationDirectory)
+        directories = [destinationDirectory] + sideDirectories if skipDuplicates else None
+        unique_files = collectExistingFiles(directories) if skipDuplicates else None
+        copyImages(images, sourceDirectory, destinationDirectory, unique_files, ignore_hashes, skipDuplicates)
 
     except Exception as e:
-        print(f"Error occurred while loading media: {str(e)}")
+        logger.error(f"Error occurred while loading media: {str(e)}")
 
     return list(unique_files.keys()) if unique_files is not None else []
 
@@ -130,7 +160,7 @@ def getTextFilesFromDirectory(path):
 # GenerateImageName: Generates a name for the frame image based on video path, frame count, frame rate, and fps.    
 def generateImageName(videoPath, frameCount, frameRate, fps):
     videoFileName = os.path.splitext(os.path.basename(videoPath))[0]
-    imageName = videoFileName + '_' + str(frameCount / frameRate * fps) + ".jpg"
+    imageName = videoFileName + '_' + str(frameCount / frameRate * fps) + ".png"
     return imageName
 
 # RemoveLastWords: Removes last word from each line in a text file.
@@ -194,16 +224,6 @@ def createFile(file, overwrite=True):
         print(f"Unable to create file: {e}")
         return False
 
-# RemoveFile: Safely remove a file.
-def removeFile(file):
-    try:
-        os.remove(file)
-    except OSError as e:
-        if e.errno != errno.ENOENT:  # Raise the exception if it's not because the file doesn't exist
-            print(f"Error: {e}")
-            return False
-    return True
-
 def move(src, dest_dir, replace=False):
     # Check if src file exists
     if not os.path.isfile(src):
@@ -228,198 +248,281 @@ def move(src, dest_dir, replace=False):
         shutil.move(src, dest_path)
 
 def delete(path):
-    if os.path.isfile(path):
-        try:
+    try:
+        if os.path.isfile(path):
             os.remove(path)
-            return True
-        except Exception as e:
-            return False
-    elif os.path.isdir(path):
-        try:
+        elif os.path.isdir(path):
             shutil.rmtree(path)
-            return True
-        except Exception as e:
+        else:
+            logger.warning(f"The path {path} does not exist.")
             return False
-    else:
-        print(f"The path {path} does not exist.")
+
+        logger.info(f"Successfully deleted {path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to delete {path}. Error: {str(e)}")
+        return False
 
 
 def copy(src, dest_dir, replace=False):
-    # Check if src file exists
-    if not os.path.isfile(src):
+    try:
+        if not os.path.isfile(src):
+            logger.error(f"Source file does not exist: {src}")
+            return False
+
+        if not os.path.isdir(dest_dir):
+            logger.info(f"Destination directory does not exist, creating it: {dest_dir}")
+            os.makedirs(dest_dir)
+
+        filename = os.path.basename(src)
+        dest_path = os.path.join(dest_dir, filename)
+
+        if os.path.exists(dest_path) and replace:
+            os.remove(dest_path)
+
+        shutil.copy(src, dest_path)
+        logger.info(f"Copied {src} to {dest_path}")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to copy file. Error: {str(e)}")
         return False
 
-    # Check if destination directory exists, if not create it
-    if not os.path.isdir(dest_dir):
-        print(f"Destination directory does not exist, creating it: {dest_dir}")
-        os.makedirs(dest_dir)
 
-    filename = os.path.basename(src)
-    dest_path = os.path.join(dest_dir, filename)
-
-    # If a file with the same name exists in the destination directory
-    if os.path.exists(dest_path):
-        if replace:
-            # If the replace option is true, remove the old file and copy the new one
-            os.remove(dest_path)
-            shutil.copy(src, dest_path)
-    else:
-        # If the file does not exist in the destination directory, copy it
-        shutil.copy(src, dest_path)
-
-
-# CreateDirectory: Safely create a new directory, with optional overwrite.
 def createDirectory(dir, overwrite=True):
     try:
-        if os.path.exists(dir):
-            if overwrite:
-                removeDirectory(dir)
-            else:
-                err = "Directory already exists and overwrite set to False."
-                return dir, err
-        os.mkdir(dir)
-        return dir, ""
-    except Exception as e:
-        err = f"Unable to create directory: {e}"
-        return None, err
+        if os.path.exists(dir) and overwrite:
+            shutil.rmtree(dir)
 
-# RemoveDirectory: Safely remove a directory.
-def removeDirectory(dir):
-    try:
-        shutil.rmtree(dir)
-    except OSError as e:
-        if e.errno != errno.ENOENT:  # Raise the exception if it's not because the directory doesn't exist
-            print(f"Error: {e}")
-            return False
-    return True
+        os.mkdir(dir)
+        logger.info(f"Directory created: {dir}")
+        return dir, ""
+
+    except Exception as e:
+        logger.error(f"Failed to create directory. Error: {str(e)}")
+        return None, str(e)
+
 
 def removeDuplicates(directory):
-    filePath = directory
-    listOfFiles = os.walk(directory)
+    try:
+        listOfFiles = os.walk(directory)
+        uniqueFiles = dict()
+        count = 0
 
-    uniqueFiles = dict()
-    count = 0
+        for root, _,  files in listOfFiles:
+            for file in files:
+                filePath = Path(os.path.join(root, file))
+                hashFile = hashlib.md5(open(filePath, 'rb').read()).hexdigest()
 
-    for root, _,  files in listOfFiles:
-        # Iterate over all the files
-        for file in tqdm(files, 'Removing duplicates...'):
-            filePath = Path(os.path.join(root, file))
+                if hashFile not in uniqueFiles:
+                    uniqueFiles[hashFile] = filePath
+                else:
+                    os.remove(filePath)
+                    count += 1
 
-            # Convert all the content of our file into an md5 hash.
-            hashFile = hashlib.md5(open(filePath, 'rb').read()).hexdigest()
+        logger.info(f"Removed {count} duplicate files from {directory}")
+        return count
 
-            # If file hash has already been added, we'll simply delete that file
-            if hashFile not in uniqueFiles:
-                uniqueFiles[hashFile] = filePath
-            else:
-                os.remove(filePath)
-                count += 1
-                
-    return count
+    except Exception as e:
+        logger.error(f"Failed to remove duplicates. Error: {str(e)}")
+        return 0
 
-def getMatchingTextFile(image_path):
-    ext_pattern = '|'.join(IMAGE_EXTENSIONS).replace('.', r'\.')
-    return re.sub(f'({ext_pattern})$', '.txt', image_path, flags=re.IGNORECASE)
+def getMatchingTextFile(image_path, image_extensions=IMAGE_EXTENSIONS):
+    try:
+        ext_pattern = '|'.join(image_extensions).replace('.', r'\.')
+        matching_file = re.sub(f'({ext_pattern})$', '.txt', image_path, flags=re.IGNORECASE)
+        logger.info(f"Matching text file for {image_path} is {matching_file}")
+        return matching_file
+    except Exception as e:
+        logger.error(f"Failed to find matching text file. Error: {str(e)}")
+        return None
 
-def removeMatchingImage(txt_file):
-    deletedFiles = []
+def removeMatchingImage(txt_file, image_extensions=IMAGE_EXTENSIONS):
+    try:
+        deletedFiles = []
 
-    # Get the base name of the text file without the extension
-    base_name = os.path.splitext(txt_file)[0]
+        # Get the base name of the text file without the extension
+        base_name = os.path.splitext(txt_file)[0]
 
-    # Define the directory in which the text file resides
-    dir_name = os.path.dirname(txt_file)
+        # Define the directory in which the text file resides
+        dir_name = os.path.dirname(txt_file)
 
-    # Loop through all files in the directory
-    for file_name in os.listdir(dir_name):
-        # Check if the file is an image file with matching base name
-        if any(file_name.lower() == base_name + ext for ext in IMAGE_EXTENSIONS):
-            # If it is, delete the file
-            os.remove(os.path.join(dir_name, file_name))
-            deletedFiles += file_name
+        # Loop through all files in the directory
+        for file_name in os.listdir(dir_name):
+            # Check if the file is an image file with matching base name
+            if any(file_name.lower() == base_name + ext for ext in image_extensions):
+                # If it is, delete the file
+                os.remove(os.path.join(dir_name, file_name))
+                deletedFiles.append(file_name)
 
-    return deletedFiles
+        logger.info(f"Removed {len(deletedFiles)} matching images.")
+        return deletedFiles
 
-# Removes last word from each line
+    except Exception as e:
+        logger.error(f"Failed to remove matching images. Error: {str(e)}")
+        return None
+
 def removeLastWords(txt):
-    with open(txt, 'r') as f:
-        lines = [line[:line.rstrip().rfind(' ')] for line in f]
+    try:
+        with open(txt, 'r') as f:
+            lines = [line[:line.rstrip().rfind(' ')] for line in f]
 
-    with open(txt, 'w') as f:
-        for line in lines:
-            f.write(f'{line}\n')
+        with open(txt, 'w') as f:
+            for line in lines:
+                f.write(f'{line}\n')
+
+        logger.info(f"Successfully removed last word from each line in {txt}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to remove last words. Error: {str(e)}")
+        return False
 
 def sortByDate(src_dir):
-    # iterate over all the files in the directory
-    for filename in tqdm(os.listdir(src_dir)):
-        file = os.path.join(src_dir, filename)
+    try:
+        # iterate over all the files in the directory
+        for filename in tqdm(os.listdir(src_dir)):
+            file = os.path.join(src_dir, filename)
 
-        # ignore directories
-        if os.path.isfile(file):
-            # get the modification time and convert it into a date string
-            date = get_creation_time(file)
+            # ignore directories
+            if os.path.isfile(file):
+                # get the modification time and convert it into a date string
+                date = get_creation_time(file)
 
-            # create a new directory path
-            new_dir = os.path.join(src_dir, date)
+                # create a new directory path
+                new_dir = os.path.join(src_dir, date)
 
-            # create new directory if it doesn't exist
-            if not os.path.exists(new_dir):
-                createDirectory(new_dir)
+                # create new directory if it doesn't exist
+                if not os.path.exists(new_dir):
+                    os.mkdir(new_dir)
 
-            # move the file to new directory
-            move(file, new_dir)
+                # move the file to new directory
+                shutil.move(file, new_dir)
+
+        logger.info(f"Successfully sorted files in {src_dir} by date.")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to sort files by date. Error: {str(e)}")
+        return False
+
 
 def get_creation_time(filename):
-    # Regular expression pattern to match Unix timestamp in filename
-    pattern = r'(\d{10})'
-    
-    # Search for Unix timestamp in filename
-    match = re.search(pattern, filename)
+    try:
+        # Regular expression pattern to match Unix timestamp in filename
+        pattern = r'(\d{10})'
+        
+        # Search for Unix timestamp in filename
+        match = re.search(pattern, filename)
 
-    if match:
-        # Convert Unix timestamp to date
-        timestamp = int(match.group(1))
-        date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
-        return date
-    else:
+        if match:
+            # Convert Unix timestamp to date
+            timestamp = int(match.group(1))
+            date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+            logger.info(f"Creation date for {filename} is {date}")
+            return date
+        else:
+            logger.error(f"No match found in {filename}")
+            return None
+
+    except Exception as e:
+        logger.error(f"Failed to get creation time. Error: {str(e)}")
         return None
-    
-def convertNameToText(name):
-    return os.path.splitext(name)[0] + '.txt'
 
-import os
+
+def convertNameToText(name):
+    try:
+        txt_name = os.path.splitext(name)[0] + '.txt'
+        logger.info(f"Converted {name} to {txt_name}")
+        return txt_name
+    except Exception as e:
+        logger.error(f"Failed to convert name to text. Error: {str(e)}")
+        return None
+
 
 def deleteFileByLabel(label_path, directory, extensions=IMAGE_EXTENSIONS):
-    # Get the filename from the label_path
-    base_name = os.path.basename(label_path)
+    try:
+        # Get the filename from the label_path
+        base_name = os.path.basename(label_path)
 
-    # For each extension, try to delete the file
-    for ext in extensions:
-        # Construct the full filename by appending the extension
-        filename = os.path.splitext(base_name)[0] + ext
+        # For each extension, try to delete the file
+        for ext in extensions:
+            # Construct the full filename by appending the extension
+            filename = os.path.splitext(base_name)[0] + ext
 
-        # Construct the full file path
-        full_path = os.path.join(directory, filename)
+            # Construct the full file path
+            full_path = os.path.join(directory, filename)
 
-        # If the file exists, delete it
-        if os.path.isfile(full_path):
-            try:
-                delete(full_path)  # using mf.delete for deleting files
-            except Exception as e:
-                pass
+            # If the file exists, delete it
+            if os.path.isfile(full_path):
+                os.remove(full_path)
+                logger.info(f"File {full_path} deleted.")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to delete file by label. Error: {str(e)}")
+        return False
 
 
 def deleteFilesWithoutLabel(file_directory, label_directory, extensions=IMAGE_EXTENSIONS):
-    # Iterate over each file in the directory
-    for ext in extensions:
-        for filename in glob.glob(os.path.join(file_directory, '*'+ext)):
-            # Construct the corresponding label path
-            label_path = os.path.join(label_directory, os.path.splitext(os.path.basename(filename))[0] + '.txt')
+    try:
+        # Iterate over each file in the directory
+        for ext in extensions:
+            for filename in glob.glob(os.path.join(file_directory, '*'+ext)):
+                # Construct the corresponding label path
+                label_path = os.path.join(label_directory, os.path.splitext(os.path.basename(filename))[0] + '.txt')
 
-            # If the label file does not exist, delete the file
-            if not os.path.isfile(label_path):
-                try:
-                    delete(filename)  # using mf.delete for deleting files
-                    print(f"Deleted {filename}")
-                except Exception as e:
-                    print(f"Error deleting {filename}: {e}")
+                # If the label file does not exist, delete the file
+                if not os.path.isfile(label_path):
+                    os.remove(filename)
+                    logger.info(f"Deleted {filename} without label.")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to delete files without label. Error: {str(e)}")
+        return False
+
+
+def remove_duplicates(directory):
+    try:
+        files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+        unique_files = dict()
+        count = 0
+
+        for file in tqdm(files, 'Removing duplicates...'):
+            file_path = Path(os.path.join(directory, file))
+            file_hash = calculateHash(file_path)
+
+            if file_hash is not None:
+                if file_hash not in unique_files:
+                    unique_files[file_hash] = file_path
+                else:
+                    os.remove(file_path)
+                    count += 1
+                    logger.info(f"File {file_path} deleted, it was a duplicate.")
+
+        logger.info(f'Removed {count} duplicates')
+        return count
+
+    except Exception as e:
+        logger.error(f"Failed to remove duplicates. Error: {str(e)}")
+        return None
+
+def calculateHash(file_path, hash_type='md5'):
+    '''Calculate the hash of a given file.'''
+    try:
+        # map the hash_type to the corresponding hashlib function
+        hash_func = getattr(hashlib, hash_type)
+    except AttributeError:
+        logger.error(f"Invalid hash type: {hash_type}. Available types are md5, sha1, sha256, sha512.")
+        return None
+    try:
+        with open(file_path, 'rb') as f:
+            file_hash = hash_func(f.read()).hexdigest()
+        logger.info(f"Hash ({hash_type}) calculated for file: {file_path}")
+        return file_hash
+    except Exception as e: 
+        logger.error(f"An error occurred while hashing the file: {e}")
+        return None

@@ -4,12 +4,16 @@ from tqdm import tqdm
 from PIL import Image
 import random
 import concurrent.futures
+import logging
 
 from .file import getImagesFromDirectory, generateImageName
 from .defs import IMAGE_EXTENSIONS
 
+logger = logging.getLogger(__name__)
+
 # ImagesToGrayscale: Converts all images in a directory to grayscale
 def imagesToGrayscale(path):
+    logger.debug(f"Converting images to grayscale at path: {path}")
     if os.listdir(path):
         list_of_images = getImagesFromDirectory(path)
         for img in tqdm(list_of_images, desc=f'Converting images to grayscale...'):
@@ -17,12 +21,12 @@ def imagesToGrayscale(path):
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             cv2.imwrite(os.path.join(path, img), gray)
     else:
-        print('Dir is empty')
+        logger.info('Directory is empty')
 
-# Converts an mp4 to jpg at a set fps
 def convertVideoToJpgs(videoPath, outputPath, fps):
+    logger.debug(f"Converting video at {videoPath} to jpgs at {outputPath} with fps {fps}")
     video = cv2.VideoCapture(videoPath)
-    frameRate = video.get(cv2.CAP_PROP_FPS)  # Get the actual fps of the video
+    frameRate = video.get(cv2.CAP_PROP_FPS)  # frame rate of the video
 
     frameCount = 0
     success, image = video.read()
@@ -38,13 +42,11 @@ def convertVideoToJpgs(videoPath, outputPath, fps):
         frameCount += 1
 
 def imageIsGrayscale(image):
-    # Convert image to RGB if it's not
+    logger.debug(f"Checking if image is grayscale")
     if image.mode != "RGB":
         image = image.convert("RGB")
-    # Get the RGB pixel values of the image
     pixels = image.getdata()
 
-    # Check if all RGB values are the same for each pixel
     if all(r == g == b for r, g, b in pixels):
         return True
     else:
