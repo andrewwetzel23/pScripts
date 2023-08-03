@@ -2,6 +2,7 @@ import pytest
 import os
 import tempfile
 import zipfile
+import time
 
 import mf
 
@@ -380,3 +381,65 @@ def test_empty_directory():
     # Test 5: Invalid path (e.g., a file instead of a directory)
     with tempfile.NamedTemporaryFile() as temp_file:
         assert mf.emptyDirectory(temp_file.name) == False
+
+def test_getNewestFile():
+    # Test 1: Standard get newest file
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path1 = os.path.join(temp_dir, 'test1.txt')
+        with open(file_path1, 'w') as f:
+            f.write('test1')
+        time.sleep(2)
+        file_path2 = os.path.join(temp_dir, 'test2.txt')
+        with open(file_path2, 'w') as f:
+            f.write('test2')
+        assert mf.getNewestFile(temp_dir, ['txt']) == file_path2
+
+    # Test 2: Get newest file with recursive=False
+    with tempfile.TemporaryDirectory() as temp_dir:
+        subdir = os.path.join(temp_dir, 'subdir')
+        os.mkdir(subdir)
+        file_path1 = os.path.join(temp_dir, 'test1.txt')
+        with open(file_path1, 'w') as f:
+            f.write('test1')
+        time.sleep(2)
+        file_path2 = os.path.join(subdir, 'test2.txt')
+        with open(file_path2, 'w') as f:
+            f.write('test2')
+        assert mf.getNewestFile(temp_dir, ['txt'], recursive=False) == file_path1
+
+    # Test 3: Get newest file with startlevel and endlevel
+    with tempfile.TemporaryDirectory() as temp_dir:
+        subdir1 = os.path.join(temp_dir, 'subdir1')
+        os.mkdir(subdir1)
+        subdir2 = os.path.join(subdir1, 'subdir2')
+        os.mkdir(subdir2)
+        file_path1 = os.path.join(temp_dir, 'test1.txt')
+        with open(file_path1, 'w') as f:
+            f.write('test1')
+        time.sleep(2)
+        file_path2 = os.path.join(subdir1, 'test2.txt')
+        with open(file_path2, 'w') as f:
+            f.write('test2')
+        time.sleep(2)
+        file_path3 = os.path.join(subdir2, 'test3.txt')
+        with open(file_path3, 'w') as f:
+            f.write('test3')
+        assert mf.getNewestFile(temp_dir, ['txt'], startlevel=1, endlevel=1) == file_path2
+
+    # Test 4: Get newest file with multiple extensions
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path1 = os.path.join(temp_dir, 'test1.txt')
+        with open(file_path1, 'w') as f:
+            f.write('test1')
+        time.sleep(2)
+        file_path2 = os.path.join(temp_dir, 'test2.md')
+        with open(file_path2, 'w') as f:
+            f.write('test2')
+        assert mf.getNewestFile(temp_dir, ['txt', 'md']) == file_path2
+
+    # Test 5: Get newest file with no matching files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        assert mf.getNewestFile(temp_dir, ['txt']) == ''
+
+    # Test 6: Get newest file with no existing directory
+    assert mf.getNewestFile('nonexistent_directory', ['txt']) == ''
