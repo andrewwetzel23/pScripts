@@ -1,5 +1,4 @@
 import numpy as np
-import errno
 
 from time import time_ns
 

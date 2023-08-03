@@ -1,7 +1,6 @@
 import os
 import shutil
 import tkinter
-import errno
 import glob
 from tkinter.filedialog import askdirectory, askopenfilename
 from pathlib import Path
@@ -14,10 +13,12 @@ import tarfile
 import gzip
 import logging
 import fnmatch
+import logging
 
 from .defs import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS
 
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger('mf')
 
 # BrowseForDir: Open a dialog to browse for a directory.
 def browseForDirectory():
@@ -37,19 +38,6 @@ def browseForFile():
     except Exception as e:
         logger.error(f"Error while browsing for a file: {str(e)}")
 
-import logging
-import os
-import glob
-
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
-
-VIDEO_EXTENSIONS = ['mp4', 'avi', 'mov'] # insert your video extensions here
-IMAGE_EXTENSIONS = ['jpg', 'png', 'bmp'] # insert your image extensions here
 
 def getSubdirectoriesFromDirectory(path, recursive=False):
     logger.debug(f"Getting list of directories from: {path}")
@@ -181,6 +169,10 @@ def splitFileFromExtension(file):
 def splitDirectoryFromFile(file_path):
     directory, file_name = os.path.split(file_path)
     return directory, file_name
+
+def splitLastDirectoryFromPath(path):
+    path, lastDirectory = os.path.split(path)
+    return path, lastDirectory
 
 
 # Unzips Files

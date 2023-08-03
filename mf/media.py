@@ -5,12 +5,11 @@ from PIL import Image
 import random
 import concurrent.futures
 import logging
-import sys
 
 from .file import getImagesFromDirectory, generateImageName
 from .defs import IMAGE_EXTENSIONS
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('mf')
 
 # ImagesToGrayscale: Converts all images in a directory to grayscale
 def imagesToGrayscale(path):
@@ -69,9 +68,9 @@ def deleteGrayscaleImages(directory):
     return count
 
 
-def resizeImages(dir, size, console=sys.stderr,recursiveSearch=False, keepAspectRatio=True):
+def resizeImages(dir, size,recursiveSearch=False, keepAspectRatio=True):
     images = getImagesFromDirectory(dir, recursiveSearch)
-    for image in tqdm(images, file=console, desc="Resizing images..."):
+    for image in tqdm(images, desc="Resizing images..."):
         resizeImage(image, size, keepAspectRatio)
 
 
