@@ -47,12 +47,21 @@ def cropYoloObject(image_path, object_data, height_ratio, width_ratio):
 
     return img.crop((x1, y1, x2, y2))
 
-def parseYoloCoordinates(label_path, object_num):
+def parseYoloCoordinates(labelPath, objectNum):
     coordinates = []
-    with open(label_path, 'r') as f:
+    with open(labelPath, 'r') as f:
         lines = f.readlines()
         for line in lines:
             parts = line.split()
-            if int(parts[0]) == object_num:
+            if int(parts[0]) == objectNum:
                 coordinates.append(list(map(float, parts[1:])))
     return coordinates
+
+def highConfidenceLabel(labelPath, confidenceThreshold):
+    with open(labelPath, 'r') as f:
+        for line in f:
+            values = [float(x) for x in line.split()]
+            confidence = values[5]
+            if confidence < confidenceThreshold:
+                return False
+    return True
