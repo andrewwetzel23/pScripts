@@ -5,7 +5,7 @@ from tqdm import tqdm
 import shutil
 
 
-from file import browseForDir, getImagesFromDirectory, splitFileFromExtension
+import mf
 
 """
 Removes all duplicate files from a directory and renames them from 0 to N
@@ -14,7 +14,7 @@ Removes all duplicate files from a directory and renames them from 0 to N
 
 
 # Dialog box for selecting a folder.
-file_path = browseForDir()
+file_path = mf.browseForDirectory()
 dir = file_path
 
 # Listing out all the files
@@ -44,13 +44,11 @@ for root, folders, files in list_of_files:
 			count += 1
 			# print(f"{file_path} has been deleted")
 
-# print(f'Removed {count} duplicates')
+print(f'Removed {count} duplicates')
 
-
-
-images = getImagesFromDirectory(dir)
+images = mf.getImagesFromDirectory(dir)
 i = 0
 for image in tqdm(images, desc=f'Renaming images...'):
-		_, ext = splitFileFromExtension(image)
+		_, ext = mf.splitFileFromExtension(image)
 		shutil.move(os.path.join(dir, image), os.path.join(dir, f'image_{i}{ext}'))
 		i += 1
