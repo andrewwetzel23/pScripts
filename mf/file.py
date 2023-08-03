@@ -213,7 +213,7 @@ def createFile(file, overwrite=True):
     try:
         if os.path.exists(file):
             if overwrite:
-                removeFile(file)
+                delete(file)
             else:
                 print("File already exists and overwrite set to False.")
                 return False
@@ -247,12 +247,20 @@ def move(src, dest_dir, replace=False):
         # If the file does not exist in the destination directory, move it
         shutil.move(src, dest_path)
 
-def delete(path):
+def delete(path, force=False):
     try:
         if os.path.isfile(path):
             os.remove(path)
         elif os.path.isdir(path):
-            shutil.rmtree(path)
+            if len(os.listdir(path)) != 0:  # if directory is not empty
+                if force:
+                    logger.warning(f"The directory {path} is not empty. Force deleting.")
+                    shutil.rmtree(path)
+                else:
+                    logger.warning(f"The directory {path} is not empty. Not deleting.")
+                    return False
+            else:
+                shutil.rmtree(path)
         else:
             logger.warning(f"The path {path} does not exist.")
             return False
@@ -263,6 +271,8 @@ def delete(path):
     except Exception as e:
         logger.error(f"Failed to delete {path}. Error: {str(e)}")
         return False
+
+
 
 
 def copy(src, dest_dir, replace=False):
@@ -329,40 +339,57 @@ def removeDuplicates(directory):
         logger.error(f"Failed to remove duplicates. Error: {str(e)}")
         return 0
 
-def getMatchingTextFile(image_path, image_extensions=IMAGE_EXTENSIONS):
+def getMatchingTextFile(file_path):
     try:
-        ext_pattern = '|'.join(image_extensions).replace('.', r'\.')
-        matching_file = re.sub(f'({ext_pattern})$', '.txt', image_path, flags=re.IGNORECASE)
-        logger.info(f"Matching text file for {image_path} is {matching_file}")
+        fileName, extension = os.path.splitext(file_path)
+        if not extension:
+            raise ValueError(f"File has no extension: {file_path}")
+        matching_file = f"{fileName}.txt"
+        logger.info(f"Matching text file for {file_path} is {matching_file}")
         return matching_file
+    except ValueError as ve:
+        logger.error(str(ve))
+        raise ve
     except Exception as e:
         logger.error(f"Failed to find matching text file. Error: {str(e)}")
         return None
 
-def removeMatchingImage(txt_file, image_extensions=IMAGE_EXTENSIONS):
+def removeMatchingImage(txt_file):
     try:
-        deletedFiles = []
+        # Ensure the text file exists
+        if not os.path.isfile(txt_file):
+            raise FileNotFoundError(f"No such file: '{txt_file}'")
+
+        deleted_files = []
 
         # Get the base name of the text file without the extension
-        base_name = os.path.splitext(txt_file)[0]
+        base_name = os.path.splitext(os.path.basename(txt_file))[0]
 
         # Define the directory in which the text file resides
         dir_name = os.path.dirname(txt_file)
 
         # Loop through all files in the directory
         for file_name in os.listdir(dir_name):
-            # Check if the file is an image file with matching base name
-            if any(file_name.lower() == base_name + ext for ext in image_extensions):
-                # If it is, delete the file
-                os.remove(os.path.join(dir_name, file_name))
-                deletedFiles.append(file_name)
+            file_base_name, ext = os.path.splitext(file_name)
 
-        logger.info(f"Removed {len(deletedFiles)} matching images.")
-        return deletedFiles
+            # Check if the file is an image file with matching base name
+            if file_base_name.lower() == base_name.lower() and ext != '.txt':
+                # If it is, delete the file
+                file_path = os.path.join(dir_name, file_name)
+                os.remove(file_path)
+                deleted_files.append(file_name)
+
+        logger.info(f"Removed {len(deleted_files)} matching images.")
+        return deleted_files
+
+    except FileNotFoundError:
+        logger.error(f"Failed to remove matching images. Error: No such file: '{txt_file}'")
+        raise  # re-raise the FileNotFoundError
 
     except Exception as e:
         logger.error(f"Failed to remove matching images. Error: {str(e)}")
         return None
+    
 
 def removeLastWords(txt):
     try:
@@ -379,6 +406,7 @@ def removeLastWords(txt):
     except Exception as e:
         logger.error(f"Failed to remove last words. Error: {str(e)}")
         return False
+    
 
 def sortByDate(src_dir):
     try:
@@ -526,3 +554,20 @@ def calculateHash(file_path, hash_type='md5'):
     except Exception as e: 
         logger.error(f"An error occurred while hashing the file: {e}")
         return None
+    
+def emptyDirectory(directory, remove_subdirs=False):
+    try:
+        logger.info(f"Starting to empty directory: {directory}")
+        for file in os.listdir(directory):
+            filepath = os.path.join(directory, file)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                logger.debug(f"Removed file: {filepath}")
+            elif os.path.isdir(filepath) and remove_subdirs:
+                shutil.rmtree(filepath)
+                logger.debug(f"Removed subdirectory: {filepath}")
+        logger.info(f"Successfully emptied directory: {directory}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to empty directory: {directory}. Error: {str(e)}")
+        return False
