@@ -11,12 +11,9 @@ setup(
     install_requires=[
         "numpy",  
         "matplotlib",
-        "opencv-python-headless",  # cv2
+        "opencv-python-headless",
         "pillow",
         "tqdm",
-        "zipfile",
-        "tarfile",
-        "gzip"
     ],
 
     classifiers=[
