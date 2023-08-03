@@ -5,6 +5,7 @@ from PIL import Image
 import random
 import concurrent.futures
 import logging
+import sys
 
 from .file import getImagesFromDirectory, generateImageName
 from .defs import IMAGE_EXTENSIONS
@@ -68,10 +69,11 @@ def deleteGrayscaleImages(directory):
     return count
 
 
-def resizeImages(dir, size, recursiveSearch=False, keepAspectRatio=True):
+def resizeImages(dir, size, console=sys.stderr,recursiveSearch=False, keepAspectRatio=True):
     images = getImagesFromDirectory(dir, recursiveSearch)
-    for image in tqdm(images, "Resizing images..."):
+    for image in tqdm(images, file=console, desc="Resizing images..."):
         resizeImage(image, size, keepAspectRatio)
+
 
 
 # ResizeImage: Resize an image, optionally keeping its aspect ratio.
