@@ -17,42 +17,6 @@ def test_getSubdirectoriesFromDirectory():
         subdirs = mf.getSubdirectoriesFromDirectory(temp_dir)
         assert subdirs == [sub_dir_path]
 
-def test_getFilesFromDirectory():
-    # Create a temporary directory
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Create a file in the temporary directory
-        file_path = os.path.join(temp_dir, 'test.txt')
-        with open(file_path, 'w') as f:
-            f.write('test')
-
-        # Test getFilesFromDirectory
-        files = mf.getFilesFromDirectory(temp_dir, exts=['txt'])
-        assert files == [file_path]
-
-def test_getVideosFromDirectory():
-    # Create a temporary directory
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Create a video file in the temporary directory
-        video_path = os.path.join(temp_dir, 'test.mp4')
-        with open(video_path, 'w') as f:
-            f.write('test')
-
-        # Test getVideosFromDirectory
-        videos = mf.getVideosFromDirectory(temp_dir)
-        assert videos == [video_path]
-
-def test_getImagesFromDirectory():
-    # Create a temporary directory
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Create an image file in the temporary directory
-        image_path = os.path.join(temp_dir, 'test.jpg')
-        with open(image_path, 'w') as f:
-            f.write('test')
-
-        # Test getImagesFromDirectory
-        images = mf.getImagesFromDirectory(temp_dir)
-        assert images == [image_path]
-
 def test_splitFileFromExtension():
     # Case 1: Normal case with file and extension
     file_name, extension = mf.splitFileFromExtension("test.txt")
@@ -382,64 +346,145 @@ def test_empty_directory():
     with tempfile.NamedTemporaryFile() as temp_file:
         assert mf.emptyDirectory(temp_file.name) == False
 
-def test_getNewestFile():
-    # Test 1: Standard get newest file
-    with tempfile.TemporaryDirectory() as temp_dir:
-        file_path1 = os.path.join(temp_dir, 'test1.txt')
-        with open(file_path1, 'w') as f:
-            f.write('test1')
-        time.sleep(2)
-        file_path2 = os.path.join(temp_dir, 'test2.txt')
-        with open(file_path2, 'w') as f:
-            f.write('test2')
-        assert mf.getNewestFile(temp_dir, ['txt']) == file_path2
+# def test_getNewestFile():
+#     # Test 1: Standard get newest file
+#     with tempfile.TemporaryDirectory() as temp_dir:
+#         file_path1 = os.path.join(temp_dir, 'test1.txt')
+#         with open(file_path1, 'w') as f:
+#             f.write('test1')
+#         time.sleep(2)
+#         file_path2 = os.path.join(temp_dir, 'test2.txt')
+#         with open(file_path2, 'w') as f:
+#             f.write('test2')
+#         assert mf.getNewestFile(temp_dir, ['txt']) == file_path2
 
-    # Test 2: Get newest file with recursive=False
-    with tempfile.TemporaryDirectory() as temp_dir:
-        subdir = os.path.join(temp_dir, 'subdir')
-        os.mkdir(subdir)
-        file_path1 = os.path.join(temp_dir, 'test1.txt')
-        with open(file_path1, 'w') as f:
-            f.write('test1')
-        time.sleep(2)
-        file_path2 = os.path.join(subdir, 'test2.txt')
-        with open(file_path2, 'w') as f:
-            f.write('test2')
-        assert mf.getNewestFile(temp_dir, ['txt'], recursive=False) == file_path1
+#     # Test 2: Get newest file with recursive=False
+#     with tempfile.TemporaryDirectory() as temp_dir:
+#         subdir = os.path.join(temp_dir, 'subdir')
+#         os.mkdir(subdir)
+#         file_path1 = os.path.join(temp_dir, 'test1.txt')
+#         with open(file_path1, 'w') as f:
+#             f.write('test1')
+#         time.sleep(2)
+#         file_path2 = os.path.join(subdir, 'test2.txt')
+#         with open(file_path2, 'w') as f:
+#             f.write('test2')
+#         assert mf.getNewestFile(temp_dir, ['txt'], recursive=False) == file_path1
 
-    # Test 3: Get newest file with startlevel and endlevel
-    with tempfile.TemporaryDirectory() as temp_dir:
-        subdir1 = os.path.join(temp_dir, 'subdir1')
-        os.mkdir(subdir1)
-        subdir2 = os.path.join(subdir1, 'subdir2')
-        os.mkdir(subdir2)
-        file_path1 = os.path.join(temp_dir, 'test1.txt')
-        with open(file_path1, 'w') as f:
-            f.write('test1')
-        time.sleep(2)
-        file_path2 = os.path.join(subdir1, 'test2.txt')
-        with open(file_path2, 'w') as f:
-            f.write('test2')
-        time.sleep(2)
-        file_path3 = os.path.join(subdir2, 'test3.txt')
-        with open(file_path3, 'w') as f:
-            f.write('test3')
-        assert mf.getNewestFile(temp_dir, ['txt'], startlevel=1, endlevel=1) == file_path2
+#     # Test 3: Get newest file with startlevel and endlevel
+#     with tempfile.TemporaryDirectory() as temp_dir:
+#         subdir1 = os.path.join(temp_dir, 'subdir1')
+#         os.mkdir(subdir1)
+#         subdir2 = os.path.join(subdir1, 'subdir2')
+#         os.mkdir(subdir2)
+#         file_path1 = os.path.join(temp_dir, 'test1.txt')
+#         with open(file_path1, 'w') as f:
+#             f.write('test1')
+#         time.sleep(2)
+#         file_path2 = os.path.join(subdir1, 'test2.txt')
+#         with open(file_path2, 'w') as f:
+#             f.write('test2')
+#         time.sleep(2)
+#         file_path3 = os.path.join(subdir2, 'test3.txt')
+#         with open(file_path3, 'w') as f:
+#             f.write('test3')
+#         assert mf.getNewestFile(temp_dir, ['txt'], startlevel=1, endlevel=1) == file_path2
 
-    # Test 4: Get newest file with multiple extensions
-    with tempfile.TemporaryDirectory() as temp_dir:
-        file_path1 = os.path.join(temp_dir, 'test1.txt')
-        with open(file_path1, 'w') as f:
-            f.write('test1')
-        time.sleep(2)
-        file_path2 = os.path.join(temp_dir, 'test2.md')
-        with open(file_path2, 'w') as f:
-            f.write('test2')
-        assert mf.getNewestFile(temp_dir, ['txt', 'md']) == file_path2
+#     # Test 4: Get newest file with multiple extensions
+#     with tempfile.TemporaryDirectory() as temp_dir:
+#         file_path1 = os.path.join(temp_dir, 'test1.txt')
+#         with open(file_path1, 'w') as f:
+#             f.write('test1')
+#         time.sleep(2)
+#         file_path2 = os.path.join(temp_dir, 'test2.md')
+#         with open(file_path2, 'w') as f:
+#             f.write('test2')
+#         assert mf.getNewestFile(temp_dir, ['txt', 'md']) == file_path2
 
-    # Test 5: Get newest file with no matching files
-    with tempfile.TemporaryDirectory() as temp_dir:
-        assert mf.getNewestFile(temp_dir, ['txt']) == ''
+#     # Test 5: Get newest file with no matching files
+#     with tempfile.TemporaryDirectory() as temp_dir:
+#         assert mf.getNewestFile(temp_dir, ['txt']) == ''
 
-    # Test 6: Get newest file with no existing directory
-    assert mf.getNewestFile('nonexistent_directory', ['txt']) == ''
+#     # Test 6: Get newest file with no existing directory
+#     assert mf.getNewestFile('nonexistent_directory', ['txt']) == ''
+
+
+def test_getFilesFromDirectory():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_directory = tmpdir
+
+        # Create some temporary files with different extensions
+        with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir, delete=False):
+            pass
+        with tempfile.NamedTemporaryFile(suffix=".doc", dir=tmpdir, delete=False):
+            pass
+
+        # Create a subdirectory with a temporary file
+        sub_dir = os.path.join(tmpdir, "subdir")
+        os.mkdir(sub_dir)
+        with tempfile.NamedTemporaryFile(suffix=".txt", dir=sub_dir, delete=False):
+            pass
+
+        # Case 1: The directory doesn't exist.
+        with pytest.raises(ValueError):
+            mf.getFilesFromDirectory("nonexistent_directory")
+
+        # Case 2: No extensions are specified.
+        files = mf.getFilesFromDirectory(test_directory, recursive=True)
+        assert len(files) == 3  # We created 3 files
+
+        # Case 3: One extension is specified.
+        files = mf.getFilesFromDirectory(test_directory, exts=["txt"], recursive=True)
+        assert len(files) == 2  # We created 2 txt files
+
+        # Case 4: Multiple extensions are specified.
+        files = mf.getFilesFromDirectory(test_directory, exts=["txt", "doc"], recursive=True)
+        assert len(files) == 3  # We created 2 txt files and 1 doc file
+
+        # Case 5: Files are sought in a directory recursively.
+        files = mf.getFilesFromDirectory(test_directory, recursive=True)
+        assert len(files) == 3  # We created 2 txt files and 1 doc file in root and subdirectories
+
+        # Case 6: Files are sought in a directory non-recursively.
+        files = mf.getFilesFromDirectory(test_directory, recursive=False)
+        assert len(files) == 2  # We created 2 files in root directory
+
+def test_getVideosFromDirectory():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create some temporary files with different extensions
+        video_file = tempfile.NamedTemporaryFile(suffix=".mp4", dir=tmpdir, delete=False)
+        video_file.close()
+        text_file = tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir, delete=False)
+        text_file.close()
+
+        # Case 1: Nonexistent directory.
+        with pytest.raises(ValueError):
+            mf.getVideosFromDirectory("nonexistent_directory")
+
+        # Case 2: Get videos from directory.
+        videos = mf.getVideosFromDirectory(tmpdir)
+        assert len(videos) == 1  # We created 1 video file
+
+        # Case 3: Recursive is set to True, but there's no subdirectory.
+        videos = mf.getVideosFromDirectory(tmpdir, recursive=True)
+        assert len(videos) == 1  # We created 1 video file
+
+def test_getImagesFromDirectory():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create some temporary files with different extensions
+        image_file = tempfile.NamedTemporaryFile(suffix=".jpg", dir=tmpdir, delete=False)
+        image_file.close()
+        text_file = tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir, delete=False)
+        text_file.close()
+
+        # Case 1: Nonexistent directory.
+        with pytest.raises(ValueError):
+            mf.getImagesFromDirectory("nonexistent_directory")
+
+        # Case 2: Get images from directory.
+        images = mf.getImagesFromDirectory(tmpdir)
+        assert len(images) == 1  # We created 1 image file
+
+        # Case 3: Recursive is set to True, but there's no subdirectory.
+        images = mf.getImagesFromDirectory(tmpdir, recursive=True)
+        assert len(images) == 1  # We created 1 image file

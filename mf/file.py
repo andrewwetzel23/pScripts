@@ -52,43 +52,51 @@ def getSubdirectoriesFromDirectory(path, recursive=False):
         logger.error(f"Error while getting directories from: {path}. Error: {str(e)}")
 
 
-
 def getFilesFromDirectory(dir, exts=None, recursive=False):
     logger.debug(f"Getting files from directory: {dir} with extensions: {exts}")
-    if exts is None:
-        exts = [""]
+
+    if exts:
+        checkExtensions(exts)
 
     if not os.path.isdir(dir):
         logger.error(f"Directory does not exist: {dir}")
         raise ValueError(f"Directory does not exist: {dir}")
 
+    # Adjust extension list to always have dots
+    exts = set([ext if ext.startswith('.') else '.' + ext for ext in exts]) if exts else None
     files = []
-    for ext in exts:
-        ext = "." + ext
-        try:
-            if recursive:
-                paths = glob.glob(os.path.join(dir, "**", "*"+ext), recursive=True)
-            else:
-                paths = glob.glob(os.path.join(dir, "*"+ext))
-            files.extend(paths)
-        except Exception as e:
-            logger.error(f"Error while getting files from: {dir} with extension: {ext}. Error: {str(e)}")
-            
+
+    for root, _, filenames in os.walk(dir):
+        for filename in filenames:
+            if exts is None or os.path.splitext(filename)[1] in exts:
+                files.append(os.path.join(root, filename))
+        if not recursive:
+            break
+
     return files
 
+
+def checkExtensions(extensions):
+    if not isinstance(extensions, list) or not all(isinstance(item, str) for item in extensions):
+        raise ValueError("Extensions must be a list of strings")
+
+
 def getVideosFromDirectory(directory, recursive=False):
-    if not isinstance(VIDEO_EXTENSIONS, list) or not all(isinstance(item, str) for item in VIDEO_EXTENSIONS):
-        raise ValueError("VIDEO_EXTENSIONS must be a list of strings")
-    
+    if not os.path.isdir(directory):
+        logger.error(f"Directory does not exist: {directory}")
+        raise ValueError(f"Directory does not exist: {directory}")
+
     logger.debug(f"Getting list of videos from: {directory}")
     try:
         return getFilesFromDirectory(directory, exts=VIDEO_EXTENSIONS, recursive=recursive)
     except Exception as e:
         logger.error(f"Error while getting videos from: {directory}. Error: {str(e)}")
 
+
 def getImagesFromDirectory(dir, recursive=False):
-    if not isinstance(IMAGE_EXTENSIONS, list) or not all(isinstance(item, str) for item in IMAGE_EXTENSIONS):
-        raise ValueError("IMAGE_EXTENSIONS must be a list of strings")
+    if not os.path.isdir(dir):
+        logger.error(f"Directory does not exist: {dir}")
+        raise ValueError(f"Directory does not exist: {dir}")
 
     logger.debug(f"Getting list of images from: {dir}")
     try:
