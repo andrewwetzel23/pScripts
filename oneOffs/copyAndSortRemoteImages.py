@@ -49,6 +49,6 @@ record_file = 'copied_files.txt'
 copy_new_files(remote_user, remote_password, remote_host, remote_path, local_path, record_file)
 copy_new_files(remote_user, remote_password, remote_host, remote_path1, local_path, record_file)
 
-# mf.deleteRedFromDirectory(local_path)
+mf.deleteRedFromDirectory(local_path)
 mf.resizeImages(local_path, [576, 352])
 mf.sortByDate(local_path)
