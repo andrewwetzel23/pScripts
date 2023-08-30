@@ -5,11 +5,32 @@ from PIL import Image
 import random
 import concurrent.futures
 import logging
+import numpy as np
 
-from .file import getImagesFromDirectory, generateImageName
+from .file import getImagesFromDirectory, generateImageName, delete
 from .defs import IMAGE_EXTENSIONS
 
 logger = logging.getLogger('mf')
+
+def deleteLandscape(image_path):
+    with Image.open(image_path) as img:
+        width, height = img.size
+
+    if width > height:
+        delete(image_path)
+        logger.debug("Delete Landscape: Landscape - Deleted")
+        return True
+    else:
+        logger.debug("Delete Landscape: Portrait - Not Deleted")
+        return False
+
+def deleteLandscapeFromDirectory(directory):
+    count = 0
+    images = getImagesFromDirectory(directory)
+    for image in tqdm(images, desc="Deleting landscape images..."):
+        if deleteLandscape(image):
+            count += 1
+    logger.info(f"Deleted {count} landscape images.")
 
 # ImagesToGrayscale: Converts all images in a directory to grayscale
 def imagesToGrayscale(path):
@@ -122,50 +143,47 @@ def deleteBadImages(dir, console):
     else:
         console.print("No bad images found.")
 
-
 def containsMuchRed(filename, number_of_pixels):
-    # Load the image
-    image = Image.open(filename)
-    
-    # Get the image data and pick n random pixels
-    data = image.getdata()
-    total_pixels = len(data)
-    if number_of_pixels > total_pixels:
-        raise ValueError(f'n = {number_of_pixels} is larger than the total number of pixels in the image = {total_pixels}')
-    sample_pixels = random.sample(list(data), number_of_pixels)
+    with Image.open(filename) as image:
+        data = np.array(image)
 
-    # Calculate the average red, green, and blue values
-    red_sum, green_sum, blue_sum, count = 0, 0, 0, 0
-    for pixel in sample_pixels:
-        red_sum += pixel[0]
-        green_sum += pixel[1]
-        blue_sum += pixel[2]
-        count += 1
-    red_avg = red_sum / count
-    green_avg = green_sum / count
-    blue_avg = blue_sum / count
+        # Ensure image has at least 3 channels
+        if data.shape[2] < 3:
+            return False
 
-    # If the red value is significantly higher than the others, delete the image
-    if red_avg > green_avg * 2 and red_avg > blue_avg * 2:
-        os.remove(filename)
-        return True
+        h, w, _ = data.shape
+        total_pixels = h * w
+
+        if number_of_pixels > total_pixels:
+            raise ValueError(f'n = {number_of_pixels} is larger than the total number of pixels in the image = {total_pixels}')
+
+        # Randomly sample pixel indices
+        idx = np.random.choice(h * w, number_of_pixels, replace=False)
+        sampled_pixels = data[idx // w, idx % w, :3]  # Assuming image is RGB
+
+        # Calculate average RGB
+        avg_color = sampled_pixels.mean(axis=0)
+
+        # If the red value is significantly higher than the others, delete the image
+        if avg_color[0] > avg_color[1] * 2 and avg_color[0] > avg_color[2] * 2:
+            os.remove(filename)
+            return True
+        
     return False
 
 
 def deleteRedFromDirectory(directory):
     # Get a list of all image files in the directory
-    image_files = [os.path.join(directory, filename) for filename in os.listdir(directory)
-                if (filename.endswith(".jpg") or filename.endswith(".png")) and os.path.isfile(os.path.join(directory, filename))]
+    image_paths = getImagesFromDirectory(directory)
 
-    # Use a ThreadPoolExecutor to process multiple images in parallel
     deleted_images = 0
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit tasks to thread pool
-        futures = {executor.submit(containsMuchRed, image_file, 100): image_file for image_file in image_files}
-
-        for i, future in enumerate(concurrent.futures.as_completed(futures), 1):
-            # Check if the image was deleted
-            if future.result():
+    
+    # Create a tqdm progress bar
+    with tqdm(total=len(image_paths), desc="Deleting Red Images...", dynamic_ncols=True) as pbar:
+        for image_file in image_paths:
+            if containsMuchRed(image_file, 100):
                 deleted_images += 1
-            # Print progress
-            print(f"Progress: {i}/{len(image_files)} ({100.0 * i / len(image_files):.2f}%), Deleted Red Images: {deleted_images}", end='\r')
+
+            # Update progress bar and display the number of images deleted so far
+            pbar.set_postfix(deleted=f"{deleted_images}/{len(image_paths)}")
+            pbar.update(1)
