@@ -15,6 +15,7 @@ import logging
 import fnmatch
 import logging
 
+from os.path import join
 from .defs import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS
 
 

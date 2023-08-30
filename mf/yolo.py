@@ -1,7 +1,8 @@
 import os
 from PIL import Image
 
-from .file import createDirectory, splitFileFromExtension, splitDirectoryFromFile
+from .file import (createDirectory, splitFileFromExtension, splitDirectoryFromFile, delete, 
+                   convertNameToText, join, getImagesFromDirectory )
 
 from ultralytics import YOLO
 
@@ -65,3 +66,15 @@ def highConfidenceLabel(labelPath, confidenceThreshold):
             if confidence < confidenceThreshold:
                 return False
     return True
+
+def cropCradlesFromPinPlates(image_dir, save_dir):
+    delete(join(image_dir, "detections"), force=True)
+    detectImages(image_dir, .8, "best.pt")
+
+    image_paths = getImagesFromDirectory(image_dir)
+    for image_path in image_paths:
+        label = convertNameToText(splitDirectoryFromFile(image_path)[1])
+
+        label_path = join(image_dir, "detections", "predict", "labels", label)
+        if os.path.exists(label_path):
+            cropAroundObjects(save_dir, image_path, label_path, 0, 2, 6)
