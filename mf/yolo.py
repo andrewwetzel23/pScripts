@@ -78,3 +78,7 @@ def cropCradlesFromPinPlates(image_dir, save_dir):
         label_path = join(image_dir, "detections", "predict", "labels", label)
         if os.path.exists(label_path):
             cropAroundObjects(save_dir, image_path, label_path, 0, 2, 6)
+
+def MaxClassification(label_path):
+    with open(label_path, 'r') as file:
+        return max(float(line.split()[0]) for line in file if line.strip())
