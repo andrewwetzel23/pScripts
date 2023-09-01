@@ -1,10 +1,14 @@
 import os
 from PIL import Image
+import logging
 
 from .file import (createDirectory, splitFileFromExtension, splitDirectoryFromFile, delete, 
                    convertNameToText, join, getImagesFromDirectory )
 
 from ultralytics import YOLO
+
+logger = logging.getLogger('mf')
+
 
 def detectImages(dir, threshold, weights):
     detectionDirectory, _ = createDirectory(os.path.join(dir, "detections"), overwrite=True)
@@ -58,14 +62,23 @@ def parseYoloCoordinates(labelPath, objectNum):
                 coordinates.append(list(map(float, parts[1:])))
     return coordinates
 
-def highConfidenceLabel(labelPath, confidenceThreshold):
+def classifyConfidence(labelPath, confidenceThreshold):
     with open(labelPath, 'r') as f:
-        for line in f:
+        content = f.read().strip()  # Remove whitespace at the beginning and end
+        if not content:  # If file is empty
+            return "empty"
+        
+        lines = content.split("\n")
+        for line in lines:
             values = [float(x) for x in line.split()]
+            if len(values) < 6:
+                logger.error("Invalid label file", labelPath)
+                return "invalid"
             confidence = values[5]
             if confidence < confidenceThreshold:
-                return False
-    return True
+                return "high"
+    return "low"
+
 
 def cropCradlesFromPinPlates(image_dir, save_dir):
     delete(join(image_dir, "detections"), force=True)
