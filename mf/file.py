@@ -152,6 +152,7 @@ def getTextFilesFromDirectory(path):
     for f in list_of_files:
         if f.endswith('.txt'):
             list_of_texts.append(os.path.join(path, f))
+            logger.debug(f"Found text file: {f}")
     return list_of_texts
 
 # GenerateImageName: Generates a name for the frame image based on video path, frame count, frame rate, and fps.    
@@ -464,7 +465,7 @@ def get_creation_time(filename):
 def convertNameToText(name):
     try:
         txt_name = os.path.splitext(name)[0] + '.txt'
-        logger.info(f"Converted {name} to {txt_name}")
+        logger.debug(f"Converted {name} to {txt_name}")
         return txt_name
     except Exception as e:
         logger.error(f"Failed to convert name to text. Error: {str(e)}")
@@ -486,8 +487,8 @@ def deleteFileByLabel(label_path, directory, extensions=IMAGE_EXTENSIONS):
 
             # If the file exists, delete it
             if os.path.isfile(full_path):
-                os.remove(full_path)
-                logger.info(f"File {full_path} deleted.")
+                delete(full_path)
+                logger.debug(f"File {full_path} deleted.")
         return True
 
     except Exception as e:
