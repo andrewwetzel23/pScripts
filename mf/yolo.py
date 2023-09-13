@@ -64,9 +64,8 @@ def parseYoloCoordinates(labelPath, objectNum):
 
 def classifyConfidence(labelPath, confidenceThreshold):
     with open(labelPath, 'r') as f:
-        content = f.read().strip()  # Remove whitespace at the beginning and end
-        if not content:  # If file is empty
-            return "empty"
+        content = f.read().strip()
+        logger.debug(content)
         
         lines = content.split("\n")
         for line in lines:
@@ -76,8 +75,8 @@ def classifyConfidence(labelPath, confidenceThreshold):
                 return "invalid"
             confidence = values[5]
             if confidence < confidenceThreshold:
-                return "high"
-    return "low"
+                return "low"
+    return "high"
 
 
 def cropCradlesFromPinPlates(image_dir, save_dir):
