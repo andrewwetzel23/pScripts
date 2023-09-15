@@ -229,12 +229,12 @@ def createFile(file, overwrite=True):
 def move(src, dest_dir, replace=False):
     # Check if src file exists
     if not os.path.isfile(src):
-        print(f"Source file does not exist: {src}")
+        logger.debug(f"Source file does not exist: {src}")
         return
 
     # Check if destination directory exists, if not create it
     if not os.path.isdir(dest_dir):
-        print(f"Destination directory does not exist, creating it: {dest_dir}")
+        logger.debug(f"Destination directory does not exist, creating {dest_dir}")
         os.makedirs(dest_dir)
 
     filename = os.path.basename(src)
@@ -245,6 +245,8 @@ def move(src, dest_dir, replace=False):
         if replace:
             # If replace is True, move the file, replacing the existing file
             shutil.move(src, dest_path)
+        else:
+            logger.debug(f"File {dest_path} already exists and replace is set to False. Not moving the source file.")
     else:
         # If the file does not exist in the destination directory, move it
         shutil.move(src, dest_path)
@@ -267,7 +269,7 @@ def delete(path, force=False):
             logger.warning(f"The path {path} does not exist.")
             return False
 
-        logger.info(f"Successfully deleted {path}")
+        logger.debug(f"Successfully deleted {path}")
         return True
 
     except Exception as e:
@@ -284,7 +286,7 @@ def copy(src, dest_dir, replace=False):
             return False
 
         if not os.path.isdir(dest_dir):
-            logger.info(f"Destination directory does not exist, creating it: {dest_dir}")
+            logger.debug(f"Destination directory does not exist, creating it: {dest_dir}")
             os.makedirs(dest_dir)
 
         filename = os.path.basename(src)
@@ -294,7 +296,7 @@ def copy(src, dest_dir, replace=False):
             os.remove(dest_path)
 
         shutil.copy(src, dest_path)
-        logger.info(f"Copied {src} to {dest_path}")
+        logger.debug(f"Copied {src} to {dest_path}")
 
         return True
 
@@ -309,7 +311,7 @@ def createDirectory(dir, overwrite=True):
             shutil.rmtree(dir)
 
         os.mkdir(dir)
-        logger.info(f"Directory created: {dir}")
+        logger.debug(f"Directory created: {dir}")
         return dir, ""
 
     except Exception as e:
@@ -347,7 +349,7 @@ def getMatchingTextFile(file_path):
         if not extension:
             raise ValueError(f"File has no extension: {file_path}")
         matching_file = f"{fileName}.txt"
-        logger.info(f"Matching text file for {file_path} is {matching_file}")
+        logger.debug(f"Matching text file for {file_path} is {matching_file}")
         return matching_file
     except ValueError as ve:
         logger.error(str(ve))
@@ -402,7 +404,7 @@ def removeLastWords(txt):
             for line in lines:
                 f.write(f'{line}\n')
 
-        logger.info(f"Successfully removed last word from each line in {txt}")
+        logger.debug(f"Successfully removed last word from each line in {txt}")
         return True
 
     except Exception as e:
@@ -451,7 +453,7 @@ def get_creation_time(filename):
             # Convert Unix timestamp to date
             timestamp = int(match.group(1))
             date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
-            logger.info(f"Creation date for {filename} is {date}")
+            logger.debug(f"Creation date for {filename} is {date}")
             return date
         else:
             logger.error(f"No match found in {filename}")
@@ -507,7 +509,7 @@ def deleteFilesWithoutLabel(file_directory, label_directory, extensions=IMAGE_EX
                 # If the label file does not exist, delete the file
                 if not os.path.isfile(label_path):
                     os.remove(filename)
-                    logger.info(f"Deleted {filename} without label.")
+                    logger.debug(f"Deleted {filename} without label.")
         return True
 
     except Exception as e:
@@ -531,7 +533,7 @@ def remove_duplicates(directory):
                 else:
                     os.remove(file_path)
                     count += 1
-                    logger.info(f"File {file_path} deleted, it was a duplicate.")
+                    logger.debug(f"File {file_path} deleted, it was a duplicate.")
 
         logger.info(f'Removed {count} duplicates')
         return count
@@ -551,7 +553,7 @@ def calculateHash(file_path, hash_type='md5'):
     try:
         with open(file_path, 'rb') as f:
             file_hash = hash_func(f.read()).hexdigest()
-        logger.info(f"Hash ({hash_type}) calculated for file: {file_path}")
+        logger.debug(f"Hash ({hash_type}) calculated for file: {file_path}")
         return file_hash
     except Exception as e: 
         logger.error(f"An error occurred while hashing the file: {e}")
