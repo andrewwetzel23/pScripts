@@ -104,6 +104,41 @@ def getImagesFromDirectory(dir, recursive=False):
     except Exception as e:
         logger.error(f"Error while getting images from: {dir}. Error: {str(e)}")
 
+def move_files(source_directory, target_directory):
+    """
+    Copy all files and subdirectories from the source directory to the target directory.
+
+    Parameters:
+    source_directory (str): The path to the source directory.
+    target_directory (str): The path to the target directory.
+
+    Returns:
+    int: The number of files moved.
+    """
+    try:
+        # Count the number of files in the target directory before the operation
+        files_before = count_files(target_directory)
+
+        # Perform the copy operation
+        shutil.copytree(source_directory, target_directory, dirs_exist_ok=True)
+
+        # Count the number of files in the target directory after the operation
+        files_after = count_files(target_directory)
+
+        # Calculate the number of files moved
+        files_moved = files_after - files_before
+
+        logger.debug(f"Successfully copied {files_moved} files from {source_directory} to {target_directory}")
+        return files_moved
+
+    except Exception as e:
+        logger.error(f"Failed to copy files from {source_directory} to {target_directory}. Error: {str(e)}")
+        return 0  # Return 0 to indicate no files were moved due to an error
+
+
+def count_files(directory):
+    """Return the number of files in a directory and its subdirectories."""
+    return sum(1 for item in Path(directory).rglob('*') if item.is_file())
 
 def collectExistingFiles(directories):
     """Collect existing files in the directories."""
