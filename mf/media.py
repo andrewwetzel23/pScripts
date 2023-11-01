@@ -6,6 +6,7 @@ import random
 import concurrent.futures
 import logging
 import numpy as np
+from joblib import Parallel, delayed
 
 from .file import getImagesFromDirectory, generateImageName, delete
 from .defs import IMAGE_EXTENSIONS
@@ -89,45 +90,33 @@ def deleteGrayscaleImages(directory):
     return count
 
 
-def resizeImages(dir, size,recursiveSearch=False, keepAspectRatio=True):
-    images = getImagesFromDirectory(dir, recursiveSearch)
-    for image in tqdm(images, desc="Resizing images..."):
-        resizeImage(image, size, keepAspectRatio)
+def resizeImage(imagePath, targetSize, keepAspectRatio, deleteBad=True):
+    if deleteBad and os.path.getsize(imagePath) == 0:
+        os.remove(imagePath)
+        return
 
-
-
-# ResizeImage: Resize an image, optionally keeping its aspect ratio.
-def resizeImage(imagePath: str, targetSize: tuple, keepAspectRatio=True):
-    # Read the image using OpenCV
     image = cv2.imread(imagePath)
+    if image is None:
+        if deleteBad:
+            os.remove(imagePath)
+        return
 
     if keepAspectRatio:
-        # If we want to keep the aspect ratio, we calculate the scale factor
-        # and resize the image to that scale.
-        maxWidth, maxHeight = targetSize
-        targetAspectRatio = maxWidth / maxHeight
-
-        # Get the current image dimensions
-        imageHeight, imageWidth, _ = image.shape
-        imageAspectRatio = imageWidth / imageHeight
-
-        # Determine the scale based on width or height
-        if imageAspectRatio > targetAspectRatio:
-            scale = imageWidth / maxWidth
-        else:
-            scale = imageHeight / maxHeight
-
-        # Calculate new dimensions and resize
-        newImageWidth = int(imageWidth / scale)
-        newImageHeight = int(imageHeight / scale)
-        newImageSize = (newImageWidth, newImageHeight)
-        imageResized = cv2.resize(image, newImageSize)
+        imageHeight, imageWidth = image.shape[:2]
+        targetWidth, targetHeight = targetSize
+        scale = min(targetWidth / imageWidth, targetHeight / imageHeight)
+        newImageSize = (int(imageWidth * scale), int(imageHeight * scale))
+        imageResized = cv2.resize(image, newImageSize, interpolation=cv2.INTER_AREA)
     else:
-        # If we do not want to keep the aspect ratio, we resize to the target size directly.
-        imageResized = cv2.resize(image, targetSize)
+        imageResized = cv2.resize(image, targetSize, interpolation=cv2.INTER_LINEAR)
 
-    # Write the resized image back to the file
     cv2.imwrite(imagePath, imageResized)
+
+def resizeImages(dir, size, recursiveSearch=False, keepAspectRatio=True, deleteBad=False):
+    images = getImagesFromDirectory(dir, recursiveSearch)
+    
+    # Use joblib's Parallel and delayed to parallelize the resizing process
+    Parallel(n_jobs=-1)(delayed(resizeImage)(image, size, keepAspectRatio, deleteBad) for image in tqdm(images, desc="Resizing images..."))
 
 def deleteBadImages(dir, console):
     images = getImagesFromDirectory(dir)
@@ -142,6 +131,13 @@ def deleteBadImages(dir, console):
         console.print(f"Remove {count} bad images.")
     else:
         console.print("No bad images found.")
+
+def deleteImageIfBad(imagePath):
+    if os.path.getsize(imagePath) == 0:
+        os.remove(imagePath)
+        return True
+    else:
+        return False
 
 def containsMuchRed(filename, number_of_pixels):
     with Image.open(filename) as image:
