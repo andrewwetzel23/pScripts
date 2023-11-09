@@ -12,7 +12,6 @@ import zipfile
 import tarfile
 import gzip
 import logging
-import fnmatch
 
 from os.path import join
 from .defs import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS
@@ -611,31 +610,37 @@ def emptyDirectory(directory, remove_subdirs=False):
         logger.error(f"Failed to empty directory: {directory}. Error: {str(e)}")
         return False
 
-def getNewestFile(directory, extensions, startingString='', recursive=True, startlevel=0, endlevel=None):
-    newest_file = ''
+def getNewestFile(directory: Path, extensions, startingString='', recursive=True, startlevel=0, endlevel=None):
+    newest_file = None
     newest_time = 0
     logger = logging.getLogger(__name__)
 
-    if not os.path.exists(directory):
+    # Ensure directory is a Path object
+    directory = Path(directory)
+
+    if not directory.exists():
         logger.error(f"The directory {directory} does not exist.")
         return ''
 
     try:
-        for root, dirs, files in os.walk(directory):
-            if recursive or root == directory:
-                level = root[len(directory):].count(os.sep)
+        # Using rglob for recursive or glob for non-recursive search
+        pattern = "**/" if recursive else ""
+        pattern += f"{startingString}*"
+        
+        # Loop through all matching patterns
+        for ext in extensions:
+            for file in directory.glob(pattern + f".{ext}"):
+                # Apply the level restrictions
+                level = len(file.relative_to(directory).parts)
                 if level >= startlevel and (endlevel is None or level <= endlevel):
-                    for ext in extensions:
-                        for file in fnmatch.filter(files, startingString + '*.' + ext):
-                            file_path = os.path.join(root, file)
-                            file_time = os.path.getctime(file_path)
-                            if file_time > newest_time:
-                                newest_file = file_path
-                                newest_time = file_time
+                    file_time = file.stat().st_ctime
+                    if file_time > newest_time:
+                        newest_file = file
+                        newest_time = file_time
     except Exception as e:
         logger.error(f"An error occurred while searching for the newest file: {str(e)}")
 
     if newest_time == 0:
         logger.warning(f"No files with the given extensions {extensions} were found in the directory {directory}.")
 
-    return newest_file if newest_time > 0 else ''
+    return str(newest_file) if newest_file else ''
